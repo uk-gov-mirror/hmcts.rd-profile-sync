@@ -1,0 +1,199 @@
+buildscript {
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath("net.serenity-bdd:serenity-gradle-plugin:2.0.11")
+	}
+}
+
+
+plugins {
+	id 'application'
+	id 'checkstyle'
+	id 'jacoco'
+	id 'pmd'
+	id 'com.github.ben-manes.versions' version '0.20.0'
+	id "info.solidsoft.pitest" version '1.3.0'
+	id 'io.spring.dependency-management' version '1.0.6.RELEASE'
+	id 'org.owasp.dependencycheck' version '5.1.0'
+	id 'org.sonarqube' version '2.6.2'
+	id 'org.springframework.boot' version '2.1.6.RELEASE'
+	id "org.flywaydb.flyway" version "5.0.7"
+}
+
+
+apply plugin: 'java'
+apply plugin: 'net.serenity-bdd.aggregator'
+apply plugin: 'project-report'
+apply plugin: 'idea'
+
+
+def versions = [
+		lombok             : '1.18.6',
+		gradlePitest       : '1.3.0',
+		pitest             : '1.4.2',
+		openfeign		   : '3.8.0',
+		reformHealthStarter: '0.0.4',
+		reformLogging      : '4.0.1',
+		reformS2sClient    : '3.0.0',
+		serenity           : '2.0.11',
+		sonarPitest        : '0.5',
+		springBoot         : '2.1.6.RELEASE',
+		springHystrix      : '2.1.1.RELEASE',
+		springfoxSwagger   : '2.9.2'
+]
+
+
+group = 'uk.gov.hmcts.reform.profilesync'
+version = '0.0.1'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+compileJava {
+	options.compilerArgs << '-parameters' << '-Xlint:deprecation' << "-Xlint:unchecked" << "-Werror"
+}
+
+compileTestJava {
+	options.compilerArgs << '-Xlint:deprecation' << "-Xlint:unchecked" << "-Werror"
+}
+
+sourceSets {
+
+	integrationTest {
+		java {
+			compileClasspath += main.output + test.output
+			runtimeClasspath += main.output + test.output
+			srcDir file('src/integrationTest/java')
+		}
+		resources.srcDir file('src/integrationTest/resources')
+	}
+
+	functionalTest {
+		java {
+			compileClasspath += main.output + test.output
+			runtimeClasspath += main.output + test.output
+			srcDir file('src/functionalTest/java')
+		}
+		resources.srcDir file('src/functionalTest/resources')
+	}
+
+	smokeTest {
+		java {
+			compileClasspath += main.output + test.output
+			runtimeClasspath += main.output + test.output
+			srcDir file('src/smokeTest/java')
+		}
+		resources.srcDir file('src/smokeTest/resources')
+	}
+}
+
+idea {
+	module {
+		testSourceDirs += project.sourceSets.integrationTest.java.srcDirs
+		testSourceDirs += project.sourceSets.integrationTest.resources.srcDirs
+		testSourceDirs += project.sourceSets.functionalTest.java.srcDirs
+		testSourceDirs += project.sourceSets.functionalTest.resources.srcDirs
+		testSourceDirs += project.sourceSets.smokeTest.java.srcDirs
+		testSourceDirs += project.sourceSets.smokeTest.resources.srcDirs
+	}
+}
+
+configurations {
+	integrationTestCompile.extendsFrom testCompile
+	integrationTestRuntime.extendsFrom testRuntime
+	functionalTestCompile.extendsFrom testCompile
+	functionalTestRuntime.extendsFrom testRuntime
+}
+
+checkstyle {
+	maxWarnings = 0
+	toolVersion = '8.10.1'
+	// need to set configDir to rootDir otherwise submodule will use submodule/config/checkstyle
+	configDir = new File(rootDir, 'config/checkstyle')
+}
+
+pmd {
+	toolVersion = '6.12.0'
+	ignoreFailures = true
+	sourceSets = [sourceSets.main, sourceSets.test, sourceSets.integrationTest, sourceSets.functionalTest, sourceSets.smokeTest]
+	reportsDir = file("$project.buildDir/reports/pmd")
+	ruleSets = [
+			'category/java/errorprone.xml',
+			'category/java/bestpractices.xml'
+	]
+}
+
+task integration(type: Test, description: 'Runs the integration tests.', group: 'Verification') {
+	testClassesDirs = sourceSets.integrationTest.output.classesDirs
+	classpath = sourceSets.integrationTest.runtimeClasspath
+}
+
+task functional(type: Test, description: 'Runs the functional tests.', group: 'Verification') {
+
+	systemProperty "scenario", System.getProperty('scenario')
+
+	testClassesDirs = sourceSets.functionalTest.output.classesDirs
+	classpath = sourceSets.functionalTest.runtimeClasspath
+	finalizedBy aggregate
+}
+
+task smoke(type: Test, description: 'Runs the smoke tests.', group: 'Verification') {
+	testClassesDirs = sourceSets.smokeTest.output.classesDirs
+	classpath = sourceSets.smokeTest.runtimeClasspath
+}
+
+task migratePostgresDatabase(type: org.flywaydb.gradle.task.FlywayMigrateTask) {
+	baselineOnMigrate = true
+	if (project.hasProperty("dburl")) {
+		url = "jdbc:postgresql://${dburl}"
+	}
+}
+
+jacoco {
+	toolVersion = "0.8.1"
+}
+
+jacocoTestReport {
+	executionData(test, integration)
+	reports {
+		xml.enabled = true
+		csv.enabled = false
+		xml.destination = file("${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml")
+	}
+}
+
+
+repositories {
+
+	maven {
+		url "https://dl.bintray.com/hmcts/hmcts-maven"
+	}
+
+	jcenter()
+}
+
+
+dependencies {
+	compile group: 'org.springframework.boot', name: 'spring-boot-starter-quartz', version: versions.springBoot
+	//compile group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: versions.springBoot
+	compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: versions.springBoot
+	compile group: 'io.github.openfeign.form', name: 'feign-form', version: versions.openfeign
+	compile group: 'io.github.openfeign.form', name: 'feign-form-spring', version: versions.openfeign
+	compile group: 'uk.gov.hmcts.reform', name: 'service-auth-provider-client', version: versions.reformS2sClient
+
+	compileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	annotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	testCompileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	integrationTestCompileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	integrationTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	functionalTestCompileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	functionalTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	smokeTestCompileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	smokeTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	
+	testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: versions.springBoot
+}
+
