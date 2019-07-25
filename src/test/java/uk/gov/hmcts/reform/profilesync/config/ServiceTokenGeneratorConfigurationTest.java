@@ -1,0 +1,28 @@
+package uk.gov.hmcts.reform.profilesync.config;
+
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+
+public class ServiceTokenGeneratorConfigurationTest {
+
+    private ServiceTokenGeneratorConfiguration sut = new ServiceTokenGeneratorConfiguration();
+
+    @Test
+    public void serviceAuthTokenGenerator() {
+        final String secret = "K6KA6PRLRFWQLSD6";
+        final String microService = "rd_professional_api";
+        final ServiceAuthorisationApi serviceAuthorisationApiMock = Mockito.mock(ServiceAuthorisationApi.class);
+
+        AuthTokenGenerator authTokenGenerator = sut.serviceAuthTokenGenerator(secret, microService, serviceAuthorisationApiMock);
+
+        assertThat(authTokenGenerator).isNotNull();
+    }
+
+
+}
