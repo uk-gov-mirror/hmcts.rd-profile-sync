@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.profilesync.service;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -13,6 +14,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
@@ -28,28 +32,22 @@ public class ProfileSyncServiceTest {
 
     private ProfileSyncService sut = new ProfileSyncService(idamClientMock, tokenGeneratorMock, userProfileClientMock, propsMock);
 
-//    @Ignore
-//    @Test
-//    public void testAuthorize() {
-//        String expectResult = "code";
-//        IdamClient.AuthenticateUserResponse responseMock = Mockito.mock(IdamClient.AuthenticateUserResponse.class);
-//
-//        when(responseMock.getCode()).thenReturn(expectResult);
-//        when(idamClientMock.authorize(any(String.class), any(Map.class), any(String.class))).thenReturn(responseMock);
-//
-//        String result = sut.authorize();
-//
-//        assertEquals(result, expectResult);
-//    }
+    private final String accessToken = "dd5g2b6-9699-12f9-bf42-526rf8864g64";
 
-    @Test
-    public void getBearerToken() {
+    @SuppressWarnings("unchecked")
+    @Before
+    public void setUp(){
+        IdamClient.AuthenticateUserResponse responseMock = Mockito.mock(IdamClient.AuthenticateUserResponse.class);
+        final String authorizationCode = "code";
+
+        when(responseMock.getCode()).thenReturn(authorizationCode);
+        when(idamClientMock.authorize(any(String.class), any(Map.class), any(String.class))).thenReturn(responseMock);
+
         final String clientId = "234342332";
         final String redirectUri = "http://someurl.com";
 
         final String authorization = "my authorization";
         final String clientAuth = "client authorized";
-        final String expectCode = "dd5g2b6-9699-12f9-bf42-526rf8864g64";
 
         when(propsMock.getClientId()).thenReturn(clientId);
         when(propsMock.getRedirectUri()).thenReturn(redirectUri);
@@ -68,24 +66,35 @@ public class ProfileSyncServiceTest {
                 ProfileSyncService.BASIC + propsMock.getAuthorization(), params, ""))
                 .thenReturn(authenticateUserResponseMock);
 
-        when(authenticateUserResponseMock.getCode()).thenReturn(expectCode);
+        when(authenticateUserResponseMock.getCode()).thenReturn(accessToken);
 
         Map<String, String> formParams = new HashMap<>();
         formParams.put("client_id", propsMock.getClientId());
         formParams.put("redirect_uri", propsMock.getRedirectUri());
-        formParams.put("code", expectCode);
+        formParams.put("code", accessToken);
         formParams.put("grant_type", "authorization_code");
 
-        IdamClient.TokenExchangeResponse responseMock = Mockito.mock(IdamClient.TokenExchangeResponse.class);
+        IdamClient.TokenExchangeResponse tokenExchangeResponse = Mockito.mock(IdamClient.TokenExchangeResponse.class);
 
-        when(idamClientMock.getToken(ProfileSyncService.BASIC + clientAuth, formParams, "")).thenReturn(responseMock);
-        when(responseMock.getAccessToken()).thenReturn(expectCode);
+        when(idamClientMock.getToken(ProfileSyncService.BASIC + clientAuth, formParams, "")).thenReturn(tokenExchangeResponse);
+        when(tokenExchangeResponse.getAccessToken()).thenReturn(accessToken);
+    }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testAuthorize() {
+        String result = sut.authorize();
 
+        verify(idamClientMock, times(1)).authorize(any(String.class), any(Map.class), any(String.class));
+
+        assertThat(result).isEqualTo(accessToken);
+    }
+
+    @Test
+    public void getBearerToken() {
         String actualToken = sut.getBearerToken();
 
-
-        assertThat(actualToken).isEqualTo(expectCode);
+        assertThat(actualToken).isEqualTo(accessToken);
     }
 
     @Test
@@ -94,7 +103,6 @@ public class ProfileSyncServiceTest {
         when(tokenGeneratorMock.generate()).thenReturn(expect);
 
         assertThat(sut.getS2sToken()).isEqualTo(expect);
-
     }
 
     @Test
@@ -123,8 +131,6 @@ public class ProfileSyncServiceTest {
 
         assertThat(response).isNotNull();
         sut.updateUserProfileFeed(searchQuery);
-
-
     }
 
 

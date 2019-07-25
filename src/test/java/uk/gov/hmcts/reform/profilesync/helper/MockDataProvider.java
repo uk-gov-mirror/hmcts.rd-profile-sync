@@ -5,6 +5,7 @@ import uk.gov.hmcts.reform.profilesync.domain.UserProfile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,7 +25,9 @@ public class MockDataProvider {
     public static final boolean postalCommsConsent = false;
     public static final String status = "PENDING";
     public static final int idamRegistrationResponse = 201;
-    public static final List<String> defaultRoles = new ArrayList<>();
+    public static final List<String> defaultRoles = new ArrayList<>(
+            Arrays.asList("pui-user-manager", "pui-organisation-manager")
+    );
 
 
     // OAUTH2 mock data
@@ -35,8 +38,6 @@ public class MockDataProvider {
     public static final String clientAuthorization = "Bearer eyjfddsfsdfsdfdj03903.dffkljfke932rjf032j02f3--fskfljdskls-fdkldskll";
 
     protected MockDataProvider(){
-        defaultRoles.add("pui-user-manager");
-        defaultRoles.add("pui-organisation-manager");
 
         userProfile = UserProfile.builder()
                 .idamId(idamId)

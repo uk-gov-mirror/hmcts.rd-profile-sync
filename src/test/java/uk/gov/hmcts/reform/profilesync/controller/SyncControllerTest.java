@@ -23,7 +23,7 @@ public class SyncControllerTest {
     final UUID idamId = UUID.randomUUID();
     final String feed = String.format("[IdamClient.User(active=true, email=apriloneil@hmcts.net, forename=April, " +
             "id=%s, lastModified=2019-07-01T08:16:38.917Z, locked=false, " +
-            "pending=false, roles=[pui-user-manager], surname=ONeil)]", idamId);
+            "pending=false, roles=[pui-user-manager, pui-organisation-manager], surname=ONeil)]", idamId);
     private ProfileSyncService serviceMock = Mockito.mock(ProfileSyncService.class);
     private final String updateFeedAck = "Done";
 
