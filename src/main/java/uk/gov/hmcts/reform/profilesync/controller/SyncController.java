@@ -5,13 +5,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.reform.profilesync.service.ProfileSyncService;
+import uk.gov.hmcts.reform.profilesync.service.impl.ProfileSyncServiceImpl;
 
 @RestController
 public class SyncController {
 
     @Autowired
-    ProfileSyncService service;
+    ProfileSyncServiceImpl service;
 
     @GetMapping(path = "/bearerToken", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public String getBearerToken(){
@@ -28,7 +28,7 @@ public class SyncController {
     @GetMapping(path = "/feed", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public String getSyncFeed(@Value("${IDAM_SEARCH_QUERY:lastModified:>now-2h}") String searchQuery){
 
-        return service.getSyncFeed(ProfileSyncService.BEARER + service.getBearerToken(), searchQuery).toString();
+        return service.getSyncFeed(ProfileSyncServiceImpl.BEARER + service.getBearerToken(), searchQuery).toString();
     }
 
     @GetMapping(path = "/update", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

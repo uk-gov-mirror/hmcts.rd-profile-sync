@@ -7,7 +7,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
 import uk.gov.hmcts.reform.profilesync.helper.MockDataProvider;
-import uk.gov.hmcts.reform.profilesync.service.ProfileSyncService;
+import uk.gov.hmcts.reform.profilesync.service.impl.ProfileSyncServiceImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +24,7 @@ public class SyncControllerTest {
     final String feed = String.format("[IdamClient.User(active=true, email=apriloneil@hmcts.net, forename=April, " +
             "id=%s, lastModified=2019-07-01T08:16:38.917Z, locked=false, " +
             "pending=false, roles=[pui-user-manager, pui-organisation-manager], surname=ONeil)]", idamId);
-    private ProfileSyncService serviceMock = Mockito.mock(ProfileSyncService.class);
+    private ProfileSyncServiceImpl serviceMock = Mockito.mock(ProfileSyncServiceImpl.class);
     private final String updateFeedAck = "Done";
 
     @InjectMocks
@@ -48,7 +48,7 @@ public class SyncControllerTest {
 
         List<IdamClient.User> users = new ArrayList<>();
         users.add(user);
-        when(serviceMock.getSyncFeed(ProfileSyncService.BEARER + bearerToken, searchQuery)).thenReturn(users);
+        when(serviceMock.getSyncFeed(ProfileSyncServiceImpl.BEARER + bearerToken, searchQuery)).thenReturn(users);
 
         MockitoAnnotations.initMocks(this);
     }
