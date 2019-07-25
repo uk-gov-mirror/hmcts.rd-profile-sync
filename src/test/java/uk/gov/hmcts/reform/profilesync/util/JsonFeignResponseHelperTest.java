@@ -26,7 +26,7 @@ public class JsonFeignResponseHelperTest {
 
         try {
             when(responseMock.body()).thenReturn(bodyMock);
-            when(responseMock.body().asReader()).thenReturn(readerMock);//.thenReturn(reader);
+            when(responseMock.body().asReader()).thenReturn(readerMock);
         } catch (Exception ex) {
             ex.printStackTrace();
             //fail("Exception ex:" + ex);

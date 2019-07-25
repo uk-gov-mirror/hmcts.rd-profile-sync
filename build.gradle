@@ -63,23 +63,23 @@ compileTestJava {
 
 sourceSets {
 
-	integrationTest {
-		java {
-			compileClasspath += main.output + test.output
-			runtimeClasspath += main.output + test.output
-			srcDir file('src/integrationTest/java')
-		}
-		resources.srcDir file('src/integrationTest/resources')
-	}
+//	integrationTest {
+//		java {
+//			compileClasspath += main.output + test.output
+//			runtimeClasspath += main.output + test.output
+//			srcDir file('src/integrationTest/java')
+//		}
+//		resources.srcDir file('src/integrationTest/resources')
+//	}
 
-	functionalTest {
-		java {
-			compileClasspath += main.output + test.output
-			runtimeClasspath += main.output + test.output
-			srcDir file('src/functionalTest/java')
-		}
-		resources.srcDir file('src/functionalTest/resources')
-	}
+//	functionalTest {
+//		java {
+//			compileClasspath += main.output + test.output
+//			runtimeClasspath += main.output + test.output
+//			srcDir file('src/functionalTest/java')
+//		}
+//		resources.srcDir file('src/functionalTest/resources')
+//	}
 
 	smokeTest {
 		java {
@@ -91,23 +91,23 @@ sourceSets {
 	}
 }
 
-idea {
-	module {
-		testSourceDirs += project.sourceSets.integrationTest.java.srcDirs
-		testSourceDirs += project.sourceSets.integrationTest.resources.srcDirs
-		testSourceDirs += project.sourceSets.functionalTest.java.srcDirs
-		testSourceDirs += project.sourceSets.functionalTest.resources.srcDirs
-		testSourceDirs += project.sourceSets.smokeTest.java.srcDirs
-		testSourceDirs += project.sourceSets.smokeTest.resources.srcDirs
-	}
-}
+//idea {
+//	module {
+//		testSourceDirs += project.sourceSets.integrationTest.java.srcDirs
+//		testSourceDirs += project.sourceSets.integrationTest.resources.srcDirs
+//		testSourceDirs += project.sourceSets.functionalTest.java.srcDirs
+//		testSourceDirs += project.sourceSets.functionalTest.resources.srcDirs
+//		testSourceDirs += project.sourceSets.smokeTest.java.srcDirs
+//		testSourceDirs += project.sourceSets.smokeTest.resources.srcDirs
+//	}
+//}
 
-configurations {
-	integrationTestCompile.extendsFrom testCompile
-	integrationTestRuntime.extendsFrom testRuntime
-	functionalTestCompile.extendsFrom testCompile
-	functionalTestRuntime.extendsFrom testRuntime
-}
+//configurations {
+//	integrationTestCompile.extendsFrom testCompile
+//	integrationTestRuntime.extendsFrom testRuntime
+//	functionalTestCompile.extendsFrom testCompile
+//	functionalTestRuntime.extendsFrom testRuntime
+//}
 
 checkstyle {
 	maxWarnings = 0
@@ -119,7 +119,8 @@ checkstyle {
 pmd {
 	toolVersion = '6.12.0'
 	ignoreFailures = true
-	sourceSets = [sourceSets.main, sourceSets.test, sourceSets.integrationTest, sourceSets.functionalTest, sourceSets.smokeTest]
+	//sourceSets = [sourceSets.main, sourceSets.test, sourceSets.integrationTest, sourceSets.functionalTest, sourceSets.smokeTest]
+	sourceSets = [sourceSets.main, sourceSets.test]
 	reportsDir = file("$project.buildDir/reports/pmd")
 	ruleSets = [
 			'category/java/errorprone.xml',
@@ -127,39 +128,40 @@ pmd {
 	]
 }
 
-//pitest {
-//	targetClasses = ['uk.gov.hmcts.reform.profilesync.*']
-//	excludedClasses = [
-//			'uk.gov.hmcts.reform.profilesync.ProfilesyncApplication',
-//			'uk.gov.hmcts.reform.profilesync.config.*',
-//			'uk.gov.hmcts.reform.profilesync.controller.*'
-//	]
-//	threads = 10
-//	outputFormats = ['XML', 'HTML']
-//	timestampedReports = false
-//	mutationThreshold = 90
-//}
+pitest {
+	targetClasses = ['uk.gov.hmcts.reform.profilesync.*']
+	excludedClasses = [
+			'uk.gov.hmcts.reform.profilesync.ProfilesyncApplication',
+			'uk.gov.hmcts.reform.profilesync.config.*',
+			'uk.gov.hmcts.reform.profilesync.client.*',
+			'uk.gov.hmcts.reform.profilesync.controller.*'
+	]
+	threads = 10
+	outputFormats = ['XML', 'HTML']
+	timestampedReports = false
+	mutationThreshold = 80
+}
 //
-//project.tasks['pitest'].group = "Verification"
+project.tasks['pitest'].group = "Verification"
 
-task integration(type: Test, description: 'Runs the integration tests.', group: 'Verification') {
-	testClassesDirs = sourceSets.integrationTest.output.classesDirs
-	classpath = sourceSets.integrationTest.runtimeClasspath
-}
+//task integration(type: Test, description: 'Runs the integration tests.', group: 'Verification') {
+//	testClassesDirs = sourceSets.integrationTest.output.classesDirs
+//	classpath = sourceSets.integrationTest.runtimeClasspath
+//}
 
-task functional(type: Test, description: 'Runs the functional tests.', group: 'Verification') {
+//task functional(type: Test, description: 'Runs the functional tests.', group: 'Verification') {
+//
+//	systemProperty "scenario", System.getProperty('scenario')
+//
+//	testClassesDirs = sourceSets.functionalTest.output.classesDirs
+//	classpath = sourceSets.functionalTest.runtimeClasspath
+//	finalizedBy aggregate
+//}
 
-	systemProperty "scenario", System.getProperty('scenario')
-
-	testClassesDirs = sourceSets.functionalTest.output.classesDirs
-	classpath = sourceSets.functionalTest.runtimeClasspath
-	finalizedBy aggregate
-}
-
-task smoke(type: Test, description: 'Runs the smoke tests.', group: 'Verification') {
-	testClassesDirs = sourceSets.smokeTest.output.classesDirs
-	classpath = sourceSets.smokeTest.runtimeClasspath
-}
+//task smoke(type: Test, description: 'Runs the smoke tests.', group: 'Verification') {
+//	testClassesDirs = sourceSets.smokeTest.output.classesDirs
+//	classpath = sourceSets.smokeTest.runtimeClasspath
+//}
 
 task migratePostgresDatabase(type: org.flywaydb.gradle.task.FlywayMigrateTask) {
 	baselineOnMigrate = true
@@ -173,7 +175,8 @@ jacoco {
 }
 
 jacocoTestReport {
-	executionData(test, integration)
+	//executionData(test, integration)
+	executionData(test)
 	reports {
 		xml.enabled = true
 		csv.enabled = false
@@ -205,12 +208,12 @@ dependencies {
 	testCompileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
 	testImplementation 'org.mockito:mockito-inline:2.13.0'
 	testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
-	integrationTestCompileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
-	integrationTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
-	functionalTestCompileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
-	functionalTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
-	smokeTestCompileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
-	smokeTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	//integrationTestCompileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	//integrationTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	//functionalTestCompileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	//functionalTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	//smokeTestCompileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	//smokeTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
 	
 	testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: versions.springBoot
 }

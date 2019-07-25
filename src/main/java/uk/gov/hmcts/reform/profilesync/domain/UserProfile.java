@@ -22,15 +22,10 @@ public class UserProfile {
     private String firstName;
     private String lastName;
 
-    //private LanguagePreference languagePreference;
-
     private boolean emailCommsConsent;
     private LocalDateTime emailCommsConsentTs;
     private boolean postalCommsConsent;
     private LocalDateTime postalCommsConsentTs;
-
-    //private UserCategory userCategory;
-    //private UserType userType;
 
     private String status;
     private Integer idamRegistrationResponse;
@@ -38,11 +33,5 @@ public class UserProfile {
     private LocalDateTime created;
 
     private LocalDateTime lastUpdated;
-
-
-
-    /*public UserProfile() {
-        //noop
-    }*/
 
 }
