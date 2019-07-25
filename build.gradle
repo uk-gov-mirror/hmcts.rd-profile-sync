@@ -44,6 +44,8 @@ def versions = [
 		springfoxSwagger   : '2.9.2'
 ]
 
+mainClassName = 'uk.gov.hmcts.reform.profilesync.ProfilesyncApplication'
+def jarName = 'rd-profile-sync.jar'
 
 group = 'uk.gov.hmcts.reform.profilesync'
 version = '0.0.1'
@@ -125,6 +127,21 @@ pmd {
 	]
 }
 
+//pitest {
+//	targetClasses = ['uk.gov.hmcts.reform.profilesync.*']
+//	excludedClasses = [
+//			'uk.gov.hmcts.reform.profilesync.ProfilesyncApplication',
+//			'uk.gov.hmcts.reform.profilesync.config.*',
+//			'uk.gov.hmcts.reform.profilesync.controller.*'
+//	]
+//	threads = 10
+//	outputFormats = ['XML', 'HTML']
+//	timestampedReports = false
+//	mutationThreshold = 90
+//}
+//
+//project.tasks['pitest'].group = "Verification"
+
 task integration(type: Test, description: 'Runs the integration tests.', group: 'Verification') {
 	testClassesDirs = sourceSets.integrationTest.output.classesDirs
 	classpath = sourceSets.integrationTest.runtimeClasspath
@@ -186,6 +203,7 @@ dependencies {
 	compileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
 	annotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
 	testCompileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+	testImplementation 'org.mockito:mockito-inline:2.13.0'
 	testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
 	integrationTestCompileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
 	integrationTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
