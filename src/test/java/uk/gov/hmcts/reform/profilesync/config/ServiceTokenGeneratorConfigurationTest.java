@@ -14,7 +14,7 @@ public class ServiceTokenGeneratorConfigurationTest {
     private ServiceTokenGeneratorConfiguration sut = new ServiceTokenGeneratorConfiguration();
 
     @Test
-    public void serviceAuthTokenGenerator() {
+    public void testServiceAuthTokenGenerator() {
         final String secret = "K6KA6PRLRFWQLSD6";
         final String microService = "rd_professional_api";
         final ServiceAuthorisationApi serviceAuthorisationApiMock = Mockito.mock(ServiceAuthorisationApi.class);

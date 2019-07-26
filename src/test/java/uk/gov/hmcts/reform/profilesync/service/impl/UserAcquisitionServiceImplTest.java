@@ -30,9 +30,6 @@ public class UserAcquisitionServiceImplTest {
         String s2sToken = "ey0f90sjaf90adjf90asjfsdljfklsf0sfj9s0d";
         String id = MockDataProvider.idamId.toString();
 
-
-        Optional<GetUserProfileResponse> findUser = Optional.of(MockDataProvider.getGetUserProfileResponse());
-
         Response responseMock = Mockito.mock(Response.class);
         Reader readerMock = Mockito.mock(Reader.class);
         final ObjectMapper json = new ObjectMapper();// TODO need to inject this in service code

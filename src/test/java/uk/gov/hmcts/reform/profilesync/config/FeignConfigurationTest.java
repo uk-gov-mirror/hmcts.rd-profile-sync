@@ -30,11 +30,12 @@ public class FeignConfigurationTest {
 
 
     @Test
-    public void feignFormEncoder() {
+    public void testFeignFormEncoder() {
         FeignConfiguration sut = new FeignConfiguration();
 
         Encoder result = sut.feignFormEncoder();
 
         assertThat(result).isNotNull();
+
     }
 }

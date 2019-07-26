@@ -35,7 +35,6 @@ public class SyncControllerTest {
         when(serviceMock.getBearerToken()).thenReturn(bearerToken);
         when(serviceMock.getS2sToken()).thenReturn(s2sToken);
 
-
         IdamClient.User user = new IdamClient.User();
         user.setId(idamId);
         user.setForename("April");
@@ -43,7 +42,6 @@ public class SyncControllerTest {
         user.setEmail("apriloneil@hmcts.net");
         user.setActive(true);
         user.setRoles(MockDataProvider.defaultRoles);
-        //user.setRoles(ArrayUtils.toUnmodifiableList(new String[]{"pui-user-manager"}));
         user.setLastModified("2019-07-01T08:16:38.917Z");
 
         List<IdamClient.User> users = new ArrayList<>();
@@ -54,22 +52,22 @@ public class SyncControllerTest {
     }
 
     @Test
-    public void getBearerToken() {
+    public void testGetBearerToken() {
         assertThat(sut.getBearerToken()).isEqualTo(bearerToken);
     }
 
     @Test
-    public void getS2sToken() {
+    public void testGetS2sToken() {
         assertThat(sut.getS2sToken()).isEqualTo(s2sToken);
     }
 
     @Test
-    public void getSyncFeed() {
+    public void testGetSyncFeed() {
         assertThat(sut.getSyncFeed(searchQuery)).isEqualTo(feed);
     }
 
     @Test
-    public void updateFeed() {
+    public void testUpdateFeed() {
         assertThat(sut.updateFeed(searchQuery)).isEqualTo(updateFeedAck);
     }
 }

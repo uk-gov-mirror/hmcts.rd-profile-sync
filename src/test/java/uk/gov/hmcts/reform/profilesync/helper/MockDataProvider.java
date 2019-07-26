@@ -41,7 +41,7 @@ public class MockDataProvider {
     public static final String authorization = "eyjkl902390jf0ksldj03903.dffkljfke932rjf032j02f3";
     public static final String clientAuthorization = "eyjfddsfsdfsdfdj03903.dffkljfke932rjf032j02f3--fskfljdskls-fdkldskll";
 
-    protected MockDataProvider(){
+    private MockDataProvider(){
 
         userProfile = UserProfile.builder()
                 .idamId(idamId)
@@ -61,7 +61,7 @@ public class MockDataProvider {
 
     public static UserProfile getUserProfile(){
         if(userProfile == null) {
-            userProfile = new MockDataProvider().userProfile;
+            userProfile = new MockDataProvider().userProfile;//NB You will break the tests if this gets removed
         }
         return userProfile;
     }

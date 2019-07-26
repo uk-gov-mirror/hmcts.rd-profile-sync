@@ -11,62 +11,62 @@ public class UserProfileTest {
     private UserProfile sut = MockDataProvider.getUserProfile();
 
     @Test
-    public void getIdamId() {
+    public void testGetIdamId() {
         assertThat(sut.getIdamId()).isEqualTo(MockDataProvider.idamId);
     }
 
     @Test
-    public void getEmail() {
+    public void testGetEmail() {
         assertThat(sut.getEmail()).isEqualTo(MockDataProvider.email);
     }
 
     @Test
-    public void getFirstName() {
+    public void testGetFirstName() {
         assertThat(sut.getFirstName()).isEqualTo(MockDataProvider.firstName);
     }
 
     @Test
-    public void getLastName() {
+    public void testGetLastName() {
         assertThat(sut.getLastName()).isEqualTo(MockDataProvider.lastName);
     }
 
     @Test
-    public void isEmailCommsConsent() {
+    public void testIsEmailCommsConsent() {
         assertThat(sut.isEmailCommsConsent()).isEqualTo(MockDataProvider.emailCommsConsent);
     }
 
     @Test
-    public void getEmailCommsConsentTs() {
+    public void testGetEmailCommsConsentTs() {
         assertThat(sut.getEmailCommsConsentTs()).isEqualTo(MockDataProvider.currentTime);
     }
 
     @Test
-    public void isPostalCommsConsent() {
+    public void testIsPostalCommsConsent() {
         assertThat(sut.isPostalCommsConsent()).isEqualTo(MockDataProvider.postalCommsConsent);
     }
 
     @Test
-    public void getPostalCommsConsentTs() {
+    public void testGetPostalCommsConsentTs() {
         assertThat(sut.getPostalCommsConsentTs()).isEqualTo(MockDataProvider.currentTime);
     }
 
     @Test
-    public void getStatus() {
+    public void testGetStatus() {
         assertThat(sut.getStatus()).isEqualTo(MockDataProvider.status);
     }
 
     @Test
-    public void getIdamRegistrationResponse() {
+    public void testGetIdamRegistrationResponse() {
         assertThat(sut.getIdamRegistrationResponse()).isEqualTo(MockDataProvider.idamRegistrationResponse);
     }
 
     @Test
-    public void getCreated() {
+    public void testGetCreated() {
         assertThat(sut.getCreated()).isEqualTo(MockDataProvider.currentTime);
     }
 
     @Test
-    public void getLastUpdated() {
+    public void testGetLastUpdated() {
         assertThat(sut.getLastUpdated()).isEqualTo(MockDataProvider.currentTime);
     }
 
