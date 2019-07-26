@@ -18,28 +18,28 @@ public class GetUserProfileResponseTest {
     }
 
     @Test
-    public void getIdamId() {
+    public void testGetIdamId() {
         assertThat(sut.getIdamId()).isEqualTo(userProfile.getIdamId());
     }
 
     @Test
-    public void getEmail() {
+    public void testGetEmail() {
         assertThat(sut.getEmail()).isEqualTo(userProfile.getEmail());
     }
 
     @Test
-    public void getFirstName() {
+    public void testGetFirstName() {
         assertThat(sut.getFirstName()).isEqualTo(userProfile.getFirstName());
     }
 
     @Test
-    public void getLastName() {
+    public void testGetLastName() {
         assertThat(sut.getLastName()).isEqualTo(userProfile.getLastName());
     }
 
 
     @Test
-    public void getIdamStatus() {
+    public void testGetIdamStatus() {
         assertThat(sut.getIdamStatus()).isEqualTo(userProfile.getStatus());
     }
 }
