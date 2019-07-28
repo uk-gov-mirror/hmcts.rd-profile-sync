@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.profilesync.config;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import feign.codec.Encoder;
 import feign.form.FormEncoder;
 import org.junit.Test;
@@ -11,10 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 public class FeignConfigurationTest {
-
 
     @Configuration
     public class FeignConfiguration {

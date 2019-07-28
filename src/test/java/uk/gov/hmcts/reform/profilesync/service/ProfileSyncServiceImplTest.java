@@ -1,5 +1,17 @@
 package uk.gov.hmcts.reform.profilesync.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -9,19 +21,6 @@ import uk.gov.hmcts.reform.profilesync.client.UserProfileClient;
 import uk.gov.hmcts.reform.profilesync.config.TokenConfigProperties;
 import uk.gov.hmcts.reform.profilesync.helper.MockDataProvider;
 import uk.gov.hmcts.reform.profilesync.service.impl.ProfileSyncServiceImpl;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 
 public class ProfileSyncServiceImplTest {
 
@@ -41,7 +40,7 @@ public class ProfileSyncServiceImplTest {
 
     @SuppressWarnings("unchecked")
     @Before
-    public void setUp(){
+    public void setUp() {
         IdamClient.AuthenticateUserResponse responseMock = Mockito.mock(IdamClient.AuthenticateUserResponse.class);
         final String authorizationCode = "code";
 
@@ -104,7 +103,7 @@ public class ProfileSyncServiceImplTest {
 
     @Test
     public void testGetS2sToken() {
-        final String expect = "Bearer xyz" ;
+        final String expect = "Bearer xyz";
         when(tokenGeneratorMock.generate()).thenReturn(expect);
 
         assertThat(sut.getS2sToken()).isEqualTo(expect);

@@ -1,21 +1,22 @@
 package uk.gov.hmcts.reform.profilesync.service.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Response;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.util.Optional;
+
 import org.junit.Test;
 import org.mockito.Mockito;
 import uk.gov.hmcts.reform.profilesync.client.UserProfileClient;
 import uk.gov.hmcts.reform.profilesync.domain.GetUserProfileResponse;
 import uk.gov.hmcts.reform.profilesync.helper.MockDataProvider;
 import uk.gov.hmcts.reform.profilesync.service.UserAcquisitionService;
-
-import java.io.IOException;
-import java.io.Reader;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 public class UserAcquisitionServiceImplTest {
 

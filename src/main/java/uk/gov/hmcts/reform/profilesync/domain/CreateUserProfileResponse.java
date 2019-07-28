@@ -1,13 +1,11 @@
 package uk.gov.hmcts.reform.profilesync.domain;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import uk.gov.hmcts.reform.profilesync.client.UserProfileClient;
-
-import java.util.UUID;
-
-import static java.util.Objects.requireNonNull;
 
 @Getter
 @Setter

@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.profilesync.domain;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.Before;
 import org.junit.Test;
 import uk.gov.hmcts.reform.profilesync.helper.MockDataProvider;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class GetUserProfileResponseTest {
 

@@ -1,13 +1,11 @@
 package uk.gov.hmcts.reform.profilesync.config;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.Test;
 import uk.gov.hmcts.reform.profilesync.helper.MockDataProvider;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-
 public class TokenConfigPropertiesTest {
-
 
     private TokenConfigProperties sut = new TokenConfigProperties();
 

@@ -1,18 +1,20 @@
 package uk.gov.hmcts.reform.profilesync.client;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import feign.Headers;
 import feign.Response;
-import lombok.*;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import uk.gov.hmcts.reform.profilesync.domain.UserProfile;
 
-import java.util.Map;
-import java.util.UUID;
-
-@FeignClient(name = "userProfileClient", url="${userprofile.api.url}")
+@FeignClient(name = "userProfileClient", url = "${userprofile.api.url}")
 public interface UserProfileClient {
 
     @PutMapping(value = "/v1/userprofile/{userId}", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE}, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})

@@ -1,5 +1,8 @@
 package uk.gov.hmcts.reform.profilesync.service.impl;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +13,6 @@ import uk.gov.hmcts.reform.profilesync.config.TokenConfigProperties;
 import uk.gov.hmcts.reform.profilesync.service.ProfileSyncService;
 import uk.gov.hmcts.reform.profilesync.service.ProfileUpdateService;
 
-import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -32,7 +34,7 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
     public static final String BASIC = "Basic ";
     public static final String BEARER = "Bearer ";
 
-    public String authorize(){
+    public String authorize() {
 
         Map<String, String> formParams = new HashMap<>();
         formParams.put("client_id", props.getClientId());
@@ -58,7 +60,7 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
         return response.getAccessToken();
     }
 
-    public String getS2sToken(){
+    public String getS2sToken() {
         return tokenGenerator.generate();
     }
 
@@ -70,10 +72,9 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
         return response;
     }
 
-    public void updateUserProfileFeed(String searchQuery){
+    public void updateUserProfileFeed(String searchQuery) {
         String bearerToken = BEARER + getBearerToken();
-        String s2sToken = getS2sToken();
-        profileUpdateService.updateUserProfile(searchQuery, bearerToken, s2sToken, getSyncFeed(bearerToken, searchQuery));
+        profileUpdateService.updateUserProfile(searchQuery, bearerToken, getS2sToken(), getSyncFeed(bearerToken, searchQuery));
     }
 
 

@@ -1,15 +1,11 @@
 package uk.gov.hmcts.reform.profilesync.domain;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
-
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
 
 @Getter
 @Setter

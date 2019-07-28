@@ -1,5 +1,8 @@
 package uk.gov.hmcts.reform.profilesync.service.impl;
 
+import java.util.List;
+import java.util.Optional;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,9 +12,6 @@ import uk.gov.hmcts.reform.profilesync.domain.GetUserProfileResponse;
 import uk.gov.hmcts.reform.profilesync.domain.UserProfile;
 import uk.gov.hmcts.reform.profilesync.service.ProfileUpdateService;
 import uk.gov.hmcts.reform.profilesync.service.UserAcquisitionService;
-
-import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @AllArgsConstructor
@@ -24,10 +24,10 @@ public class ProfileUpdateServiceImpl implements ProfileUpdateService {
     public void updateUserProfile(String searchQuery, String bearerToken, String s2sToken, List<IdamClient.User> users) {
         users.forEach(user -> {
             Optional<GetUserProfileResponse> userProfile = userAcquisitionService.findUser(bearerToken, s2sToken, user.getId().toString());
-            if (userProfile.isPresent()){
+            if (userProfile.isPresent()) {
 
                 UserProfile updatedUserProfile = UserProfile.builder()
-                        .email(user.getEmail())
+                        //.email(user.getEmail())
                         .firstName(user.getForename())
                         .lastName(user.getSurname())
                         .status(user.isActive() ? "ACTIVE" : "PENDING")
