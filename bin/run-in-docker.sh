@@ -29,7 +29,7 @@ execute_script() {
 
   chmod +x bin/*
 
-  docker-compose build
+  docker-compose up
 }
 
 execute_script

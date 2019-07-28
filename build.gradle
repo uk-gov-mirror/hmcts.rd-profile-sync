@@ -41,7 +41,7 @@ def versions = [
 		springfoxSwagger   : '2.9.2'
 ]
 
-mainClassName = 'uk.gov.hmcts.reform.profilesync.ProfilesyncApplication'
+mainClassName = 'uk.gov.hmcts.reform.profilesync.ProfileSyncApplication'
 def jarName = 'rd-profile-sync.jar'
 
 group = 'uk.gov.hmcts.reform.profilesync'
