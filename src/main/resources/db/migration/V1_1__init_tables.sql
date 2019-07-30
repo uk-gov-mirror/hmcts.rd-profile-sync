@@ -1,3 +1,5 @@
+create schema if not exists dbsyncdata;
+
 create table sync_job(
  id bigint,
 response integer,

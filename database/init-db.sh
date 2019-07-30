@@ -8,7 +8,7 @@ if [ -z "$POSTGRES_PASSWORD" ]; then
   exit 1
 fi
 
-echo "Creating dbuserprofile Database . . . "
+echo "Creating dbsyncdata Database . . . "
 
 psql -v ON_ERROR_STOP=1 --username postgres --dbname postgres <<-EOSQL
   CREATE ROLE dbsyncdata WITH PASSWORD 'dbsyncdata';

@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.profilesync.client.UserProfileClient;
 import uk.gov.hmcts.reform.profilesync.domain.GetUserProfileResponse;
 import uk.gov.hmcts.reform.profilesync.service.UserAcquisitionService;
@@ -16,6 +17,7 @@ import uk.gov.hmcts.reform.profilesync.util.JsonFeignResponseHelper;
 
 @Slf4j
 @AllArgsConstructor
+@Service
 public class UserAcquisitionServiceImpl implements UserAcquisitionService {
 
     @Autowired

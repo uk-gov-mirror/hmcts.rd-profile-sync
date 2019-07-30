@@ -20,19 +20,16 @@ import uk.gov.hmcts.reform.profilesync.service.ProfileUpdateService;
 public class ProfileSyncServiceImpl implements ProfileSyncService {
 
     @Autowired
-    private final IdamClient idamClient;
+    protected final IdamClient idamClient;
 
     @Autowired
-    private final AuthTokenGenerator tokenGenerator;
+    protected final AuthTokenGenerator tokenGenerator;
 
     @Autowired
-    private final ProfileUpdateService profileUpdateService;
+    protected final ProfileUpdateService profileUpdateService;
 
     @Autowired
     private final TokenConfigProperties props;
-
-    public static final String BASIC = "Basic ";
-    public static final String BEARER = "Bearer ";
 
     public String authorize() {
 

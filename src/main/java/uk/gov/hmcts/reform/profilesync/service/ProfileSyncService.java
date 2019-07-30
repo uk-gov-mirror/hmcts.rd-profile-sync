@@ -6,6 +6,9 @@ import uk.gov.hmcts.reform.profilesync.client.IdamClient;
 
 public interface ProfileSyncService {
 
+    String BASIC = "Basic ";
+    String BEARER = "Bearer ";
+
     String authorize();
 
     String getBearerToken();
