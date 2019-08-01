@@ -17,6 +17,6 @@ public interface ProfileSyncService {
 
     List<IdamClient.User> getSyncFeed(String bearerToken, String searchQuery);
 
-    void updateUserProfileFeed(String searchQuery);
+    void updateUserProfileFeed(String searchQuery, int count);
 
 }

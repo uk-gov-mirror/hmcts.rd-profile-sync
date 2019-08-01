@@ -18,7 +18,7 @@ public class SyncController {
     @Autowired
     protected ProfileSyncService profileSyncService;
 
-    @GetMapping(path = "/bearerToken", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  /*  @GetMapping(path = "/bearerToken", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public String getBearerToken() {
 
         return profileSyncService.getBearerToken();
@@ -42,5 +42,5 @@ public class SyncController {
         profileSyncService.updateUserProfileFeed(searchQuery);
 
         return "Done";
-    }
+    }*/
 }

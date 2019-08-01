@@ -5,20 +5,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import uk.gov.hmcts.reform.profilesync.helper.MockDataProvider;
 
-public class CreateUserProfileResponseTest {
+public class UserProfileResponseTest {
 
     private UserProfile user = MockDataProvider.getUserProfile();
-    private CreateUserProfileResponse createUserProfileResponse = new CreateUserProfileResponse(user);
+    private UserProfileResponse userProfileResponse = new UserProfileResponse(user);
 
 
     @Test
     public void testGetIdamId() {
-        assertThat(createUserProfileResponse.getIdamId()).isEqualTo(user.getIdamId());
+        assertThat(userProfileResponse.getIdamId()).isEqualTo(user.getIdamId());
     }
 
     @Test
     public void testGetIdamRegistrationResponse() {
-        assertThat(createUserProfileResponse.getIdamRegistrationResponse()).isEqualTo(user.getIdamRegistrationResponse());
+        assertThat(userProfileResponse.getIdamRegistrationResponse()).isEqualTo(user.getIdamRegistrationResponse());
     }
 
 }

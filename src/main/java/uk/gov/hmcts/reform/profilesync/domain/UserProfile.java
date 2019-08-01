@@ -23,7 +23,7 @@ public class UserProfile {
     private boolean postalCommsConsent;
     private LocalDateTime postalCommsConsentTs;
 
-    private String status;
+    private String idamStatus;
     private Integer idamRegistrationResponse;
 
     private LocalDateTime created;

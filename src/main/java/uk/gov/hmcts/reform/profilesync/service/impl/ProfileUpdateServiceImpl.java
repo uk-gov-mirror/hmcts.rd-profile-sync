@@ -1,5 +1,8 @@
 package uk.gov.hmcts.reform.profilesync.service.impl;
 
+import feign.FeignException;
+import feign.Response;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,13 +11,21 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
+import uk.gov.hmcts.reform.profilesync.client.UserProfileClient;
+import uk.gov.hmcts.reform.profilesync.domain.UserProfileResponse;
+import uk.gov.hmcts.reform.profilesync.domain.ErrorResponse;
 import uk.gov.hmcts.reform.profilesync.domain.GetUserProfileResponse;
 import uk.gov.hmcts.reform.profilesync.domain.IdamStatus;
+import uk.gov.hmcts.reform.profilesync.domain.Source;
+import uk.gov.hmcts.reform.profilesync.domain.SyncJobAudit;
 import uk.gov.hmcts.reform.profilesync.domain.UserProfile;
+import uk.gov.hmcts.reform.profilesync.repository.SyncJobRepository;
 import uk.gov.hmcts.reform.profilesync.service.ProfileUpdateService;
 import uk.gov.hmcts.reform.profilesync.service.UserAcquisitionService;
+import uk.gov.hmcts.reform.profilesync.util.JsonFeignResponseHelper;
 
 @Slf4j
 @AllArgsConstructor
@@ -24,7 +35,14 @@ public class ProfileUpdateServiceImpl implements ProfileUpdateService {
     @Autowired
     protected   UserAcquisitionService userAcquisitionService;
 
-    public void updateUserProfile(String searchQuery, String bearerToken, String s2sToken, List<IdamClient.User> users) {
+    @Autowired
+    private final UserProfileClient userProfileClient;
+
+    @Autowired
+    private final SyncJobRepository syncJobRepository;
+
+    public void updateUserProfile(String searchQuery, String bearerToken, String s2sToken, List<IdamClient.User> users, int count) {
+        log.info("In side updateUserProfile:: ");
         users.forEach(user -> {
             Optional<GetUserProfileResponse> userProfile = userAcquisitionService.findUser(bearerToken, s2sToken, user.getId().toString());
             if (userProfile.isPresent()) {
@@ -33,18 +51,62 @@ public class ProfileUpdateServiceImpl implements ProfileUpdateService {
                 status.put(IdamStatus.PENDING.name(), user.isPending());
                 status.put(IdamStatus.LOCKED.name(), user.isLocked());
                 UserProfile updatedUserProfile = UserProfile.builder()
-                        //.email(user.getEmail())
+                        .email(user.getEmail())
                         .firstName(user.getForename())
                         .lastName(user.getSurname())
-                        .status(idamStatusResolver().get(status) != null ? idamStatusResolver().get(status).name() : "PENDING")
+                        .idamStatus(iDamStatusResolver().get(status) != null ? iDamStatusResolver().get(status).name() : "PENDING")
                         .build();
+
+                syncUser(bearerToken,s2sToken,user.getId().toString(),updatedUserProfile);
 
                 log.info("User updated : Id - {}", user.getId().toString());
             }
         });
     }
 
-    public Map<Map<String, Boolean>, IdamStatus> idamStatusResolver() {
+    private Optional<UserProfileResponse> syncUser(String bearerToken, String s2sToken,
+                                                   String userId, UserProfile updatedUserProfile) {
+        UserProfileResponse userProfile = null;
+        try {
+            Response response = userProfileClient.syncUserStatus(bearerToken, s2sToken, userId, updatedUserProfile);
+
+            ResponseEntity responseEntity = JsonFeignResponseHelper.toResponseEntity(response, UserProfileResponse.class);
+
+            Class clazz = response.status() > 300 ? ErrorResponse.class : UserProfileResponse.class;
+
+            if (response.status() > 300) {
+
+                saveSyncJobAudit(response.status(),"fail");
+                log.error("Exception occurred : Status - {}", response.status());
+
+               //return  Optional.ofNullable(userProfile);
+            } else if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                userProfile = (UserProfileResponse) responseEntity.getBody();
+                log.info("User record updated in User Profile with idamId = {}");
+
+            }
+        } catch (FeignException ex) {
+            log.error("Exception occurred : Status - {}, Content - {}", ex.status());
+            saveSyncJobAudit(500,"fail");
+        }
+
+        return Optional.ofNullable(userProfile);
+    }
+
+    private void saveSyncJobAudit(Integer iDamResponse,String message) {
+
+        SyncJobAudit syncJobAudit = new SyncJobAudit(iDamResponse, message, Source.SYNC);
+        syncJobRepository.save(syncJobAudit);
+    }
+
+    @Override
+    public List<SyncJobAudit> findByStatus(String status) {
+
+       List<SyncJobAudit> syncJobAudits =  syncJobRepository.findByStatus(status);
+       return syncJobAudits;
+    }
+
+    public Map<Map<String, Boolean>, IdamStatus> iDamStatusResolver() {
 
         Map<Map<String, Boolean>, IdamStatus> idamStatusMap = new HashMap<Map<String, Boolean>, IdamStatus>();
         idamStatusMap.put(addRule(false,true, false), IdamStatus.PENDING);

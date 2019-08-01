@@ -10,15 +10,14 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class CreateUserProfileResponse {
+public class UserProfileResponse {
 
     private UUID idamId;
-    private Integer idamRegistrationResponse;
+    private Integer iDamRegistrationResponse;
 
-    public CreateUserProfileResponse(UserProfile userProfile) {
+    public UserProfileResponse(UserProfile userProfile) {
 
-        requireNonNull(userProfile, "userProfile must not be null");
         this.idamId = userProfile.getIdamId();
-        this.idamRegistrationResponse = userProfile.getIdamRegistrationResponse();
+        this.iDamRegistrationResponse = userProfile.getIdamRegistrationResponse();
     }
 }

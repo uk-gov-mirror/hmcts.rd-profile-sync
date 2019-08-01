@@ -29,7 +29,7 @@ public class SyncJobAudit {
 
     private String status;
 
-    private String errorMsg;
+    private String errorMessage;
 
     @Enumerated(EnumType.STRING)
     private Source source;
@@ -39,14 +39,10 @@ public class SyncJobAudit {
     @CreationTimestamp
     private LocalDateTime auditTs;
 
-    public SyncJobAudit(Long id, Integer response, String status, Source source, Integer recordsUpdated, LocalDateTime auditTs) {
+    public SyncJobAudit(Integer response, String status, Source source) {
 
-        this.id = id;
         this.response = response;
         this.status = status;
         this.source = source;
-        this.recordsUpdated = recordsUpdated;
-        this.auditTs = auditTs;
-
     }
 }

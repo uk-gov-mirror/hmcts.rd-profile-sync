@@ -24,7 +24,7 @@ public class GetUserProfileResponse {
         this.email = userProfile.getEmail();
         this.firstName = userProfile.getFirstName();
         this.lastName = userProfile.getLastName();
-        this.idamStatus = userProfile.getStatus();
+        this.idamStatus = userProfile.getIdamStatus();
     }
 
 }

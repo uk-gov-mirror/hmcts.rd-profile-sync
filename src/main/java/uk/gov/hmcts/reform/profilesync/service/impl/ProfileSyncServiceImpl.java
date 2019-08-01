@@ -1,17 +1,28 @@
 package uk.gov.hmcts.reform.profilesync.service.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import feign.Response;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
 import uk.gov.hmcts.reform.profilesync.config.TokenConfigProperties;
+import uk.gov.hmcts.reform.profilesync.domain.ErrorResponse;
+import uk.gov.hmcts.reform.profilesync.domain.GetUserProfileResponse;
+import uk.gov.hmcts.reform.profilesync.domain.Source;
+import uk.gov.hmcts.reform.profilesync.domain.SyncJobAudit;
+import uk.gov.hmcts.reform.profilesync.repository.SyncJobRepository;
 import uk.gov.hmcts.reform.profilesync.service.ProfileSyncService;
 import uk.gov.hmcts.reform.profilesync.service.ProfileUpdateService;
+import uk.gov.hmcts.reform.profilesync.util.JsonFeignResponseHelper;
 
 
 @Service
@@ -30,6 +41,9 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
 
     @Autowired
     private final TokenConfigProperties props;
+
+    @Autowired
+    private final SyncJobRepository syncJobRepository;
 
     public String authorize() {
 
@@ -62,16 +76,40 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
     }
 
     public List<IdamClient.User> getSyncFeed(String bearerToken, String searchQuery) {
+        List<IdamClient.User> totalUsers = new ArrayList<>();
 
         Map<String, String> formParams = new HashMap<>();
         formParams.put("query", searchQuery);
-        List<IdamClient.User> response = idamClient.getUserFeed(bearerToken, formParams);
-        return response;
+        Response response = idamClient.getUserFeed(bearerToken, formParams);
+
+        ResponseEntity responseEntity = JsonFeignResponseHelper.toResponseEntity(response, IdamClient.User.class);
+        Class clazz = response.status() > 300 ? ErrorResponse.class : IdamClient.User.class;
+
+        if (response.status() > 300) {
+
+            log.error("No record find in the IDAM:{}");
+
+        } else if (responseEntity.getStatusCode().is2xxSuccessful()) {
+
+            List<String> values= responseEntity.getHeaders().get("X-Total-Count");
+            List<IdamClient.User> users = (List<IdamClient.User>) responseEntity.getBody();
+
+            totalUsers.addAll(users);
+
+            log.info("Found record in User Profile with idamId = {}");
+
+        }
+        /*List<IdamClient.User>
+        if(CollectionUtils.isEmpty(response)) {
+            SyncJobAudit syncJobAudit = new SyncJobAudit(200, "success", Source.SYNC);
+            syncJobRepository.save(syncJobAudit);
+        }*/
+        return totalUsers;
     }
 
-    public void updateUserProfileFeed(String searchQuery) {
+    public void updateUserProfileFeed(String searchQuery, int recordsCount) {
         String bearerToken = BEARER + getBearerToken();
-        profileUpdateService.updateUserProfile(searchQuery, bearerToken, getS2sToken(), getSyncFeed(bearerToken, searchQuery));
+        profileUpdateService.updateUserProfile(searchQuery, bearerToken, getS2sToken(), getSyncFeed(bearerToken, searchQuery), recordsCount);
     }
 
 

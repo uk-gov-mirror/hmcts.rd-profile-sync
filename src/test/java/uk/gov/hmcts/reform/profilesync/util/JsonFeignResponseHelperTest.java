@@ -18,7 +18,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
-import uk.gov.hmcts.reform.profilesync.domain.CreateUserProfileResponse;
+import uk.gov.hmcts.reform.profilesync.domain.UserProfileResponse;
 import uk.gov.hmcts.reform.profilesync.helper.MockDataProvider;
 
 public class JsonFeignResponseHelperTest {
@@ -44,16 +44,16 @@ public class JsonFeignResponseHelperTest {
 
     @Test
     public void testDecode() {
-        JsonFeignResponseHelper.decode(responseMock, CreateUserProfileResponse.class);
+        JsonFeignResponseHelper.decode(responseMock, UserProfileResponse.class);
 
-        ResponseEntity entity = JsonFeignResponseHelper.toResponseEntity(this.responseMock, CreateUserProfileResponse.class);
+        ResponseEntity entity = JsonFeignResponseHelper.toResponseEntity(this.responseMock, UserProfileResponse.class);
 
         assertThat(entity).isNotNull();
     }
 
     @Test
     public void testToResponseEntity() {
-        ResponseEntity actual = JsonFeignResponseHelper.toResponseEntity(this.responseMock, CreateUserProfileResponse.class);
+        ResponseEntity actual = JsonFeignResponseHelper.toResponseEntity(this.responseMock, UserProfileResponse.class);
 
         assertThat(actual).isNotNull();
     }
