@@ -53,11 +53,11 @@ public interface IdamClient {
         private String accessToken;
     }
 
-    @Data
+    /*@Data
     class Users {
         @JsonProperty("user")
         List<User> users;
-    }
+    }*/
 
     @Data
     class User {
