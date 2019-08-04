@@ -11,6 +11,7 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -20,6 +21,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @Entity
 @Table(name = "sync_job")
 @SequenceGenerator(name = "sync_job_id_seq", sequenceName = "sync_job_id_seq", allocationSize = 1)
+@NoArgsConstructor
 public class SyncJobAudit {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sync_job_id_seq")

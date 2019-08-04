@@ -15,7 +15,11 @@ public interface ProfileSyncService {
 
     String getS2sToken();
 
+    //void createUserProfile();
+
     List<IdamClient.User> getSyncFeed(String bearerToken, String searchQuery);
+
+   // Users getSyncFeed(String bearerToken, String searchQuery);
 
     void updateUserProfileFeed(String searchQuery, int count);
 
