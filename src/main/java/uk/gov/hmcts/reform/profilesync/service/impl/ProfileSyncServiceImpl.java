@@ -78,9 +78,6 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
     public List<IdamClient.User> getSyncFeed(String bearerToken, String searchQuery) {
         log.info("Inside getSyncFeed");
         List<IdamClient.User> totalUsers = new ArrayList<>();
-        List<User> users = new ArrayList<>();
-
-        //Users user = null;
 
         Map<String, String> formParams = new HashMap<>();
         formParams.put("query", searchQuery);
@@ -93,22 +90,21 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
             int records = Integer.parseInt(responseEntity.getHeaders().get("X-Total-Count").get(0));
             if (records > 20) {
 
-                List<String> totalRecords = new ArrayList<>();
-                // users = (Users) response.body();
                 for (Integer i : numberOfCallsToIdamService(records)) {
 
-                    callToGetUserFeed(bearerToken,i,formParams,totalUsers);
+                    callToGetUserFeed(bearerToken,i,formParams);
+                    //totalUsers.addAll(callToGetUserFeed(bearerToken,i,formParams));
 
                 }
 
-                log.info("size of the Users array::" + users.size());
+                log.info("Total IDAM Users Count::" + totalUsers.size());
             } else {
 
-             //   totalUsers =  (List<IdamClient.User>) response.body();
+                totalUsers =  (List<IdamClient.User>) responseEntity.getBody();
 
             }
 
-          //  log.info("Found record in User Profile with idamId = {}");
+
         }
 
         if(CollectionUtils.isEmpty(totalUsers)) {
@@ -118,51 +114,27 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
         return totalUsers;
     }
 
-    private void callToGetUserFeed(String token, Integer pageNo, Map<String, String> formParams,List<IdamClient.User> usersForAllPages) {
+    private List<IdamClient.User> callToGetUserFeed(String token, Integer pageNo, Map<String, String> formParams) {
+
         String newQuery = "roles:\"pui-case-manager\" OR roles:\"pui-user-manager\" OR roles:\"pui-organisation-manager\" OR roles:\"pui-finance-manager\"$PAGE$";
         String dynamicQuery = newQuery.replace("$PAGE$","&page="+pageNo);
         log.info("dynamicQuery::" + dynamicQuery);
         formParams.put("query",dynamicQuery);
-        List<IdamClient.User> usersPerPage = null;
+        List<IdamClient.User> usersPerPage = new ArrayList<>();
+        List<IdamClient.User> users = null;
         Response response  = idamClient.getUserFeed(token, formParams);
-        ResponseEntity responseEntity = JsonFeignResponseHelper.toResponseEntity(response, IdamClient.User.class);
+        ResponseEntity responseEntity = JsonFeignResponseHelper.toResponseEntity(response, usersPerPage.getClass());
         Class clazz = response.status() > 300 ? ErrorResponse.class : IdamClient.User.class;
 
         if ( response.status() < 300 && responseEntity.getStatusCode().is2xxSuccessful()) {
 
-             // usersPerPage = (IdamClient.User) responseEntity.getBody();
-             IdamClient.User users = (IdamClient.User) responseEntity.getBody();
-             log.info("User ::" + users);
-              //usersForAllPages.addAll(usersPerPage);
+             users = (List<IdamClient.User>) responseEntity.getBody();
+             log.info("User Size::" + users.size());
+            responseEntity = null;
+            usersPerPage = null;
         }
-
+     return  users;
     }
-
-
-   /* public List<String>  decode(Response response) throws IOException, FeignException {
-        byte[] body = null;
-        List<String> result = null;
-        if (null != response) {
-
-            //body = response.body() != null ? Util.toByteArray(response.body().asInputStream()) : new byte[0];
-            Reader reader = null;
-            try {
-                reader = response.body().asReader();
-                //Easy way to read the stream and get a String object
-                result = CharStreams.readLines(reader);
-                //use a Jackson ObjectMapper to convert the Json String into a
-                //Pojo
-                ObjectMapper mapper = new ObjectMapper();
-                //just in case you missed an attribute in the Pojo
-                mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-            } catch(Exception e) {
-
-            }
-
-        }
-        return result;
-    }*/
-
 
     private List<Integer> numberOfCallsToIdamService(int totalRecords) {
 
@@ -183,7 +155,7 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
         log.info("Inside updateUserProfileFeed");
         String bearerToken = BEARER + getBearerToken();
         getSyncFeed(bearerToken, searchQuery);
-        // profileUpdateService.updateUserProfile(searchQuery, bearerToken, getS2sToken(), getSyncFeed(bearerToken, searchQuery), recordsCount);
+        //profileUpdateService.updateUserProfile(searchQuery, bearerToken, getS2sToken(), getSyncFeed(bearerToken, searchQuery), recordsCount);
         log.info("After updateUserProfileFeed");
     }
 }
