@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.profilesync.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import feign.Response;
 
 import java.util.ArrayList;
@@ -77,64 +78,40 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
 
     public List<IdamClient.User> getSyncFeed(String bearerToken, String searchQuery) {
         log.info("Inside getSyncFeed");
-        List<IdamClient.User> totalUsers = new ArrayList<>();
 
         Map<String, String> formParams = new HashMap<>();
         formParams.put("query", searchQuery);
-        Response response  = idamClient.getUserFeed(bearerToken, formParams);
-        ResponseEntity responseEntity = JsonFeignResponseHelper.toResponseEntity(response, IdamClient.User.class);
-        Class clazz = response.status() > 300 ? ErrorResponse.class : IdamClient.User.class;
 
-        if ( response.status() < 300 && responseEntity.getStatusCode().is2xxSuccessful()) {
+        List <IdamClient.User> updatedUserList = new ArrayList<>();
+        int totalCount = 0;
+        int counter = 0;
+        int recordsPerPage = 20;
 
-            int records = Integer.parseInt(responseEntity.getHeaders().get("X-Total-Count").get(0));
-            if (records > 20) {
+        do {
+            formParams.put("page", String.valueOf(counter));
+            Response response  = idamClient.getUserFeed(bearerToken, formParams);
+            ResponseEntity responseEntity = JsonFeignResponseHelper.toResponseEntity(response, new TypeReference<List<IdamClient.User>>() { });
+            Class clazz = response.status() > 300 ? ErrorResponse.class : IdamClient.User.class;
 
-                for (Integer i : numberOfCallsToIdamService(records)) {
+            if ( response.status() < 300 && responseEntity.getStatusCode().is2xxSuccessful()) {
 
-                    callToGetUserFeed(bearerToken,i,formParams);
-                    //totalUsers.addAll(callToGetUserFeed(bearerToken,i,formParams));
+                List<IdamClient.User> users =  (List<IdamClient.User>) responseEntity.getBody();
+                log.info("User ::" + users);
+                updatedUserList.addAll(users);
 
+                try {
+                    totalCount = Integer.parseInt(responseEntity.getHeaders().get("X-Total-Count").get(0));
+                } catch (Exception ex) {
+                    //There is No header.
                 }
-
-                log.info("Total IDAM Users Count::" + totalUsers.size());
-            } else {
-
-                totalUsers =  (List<IdamClient.User>) responseEntity.getBody();
-
             }
+            counter ++;
 
+        } while (totalCount > 0 && (recordsPerPage * counter) < totalCount);
 
-        }
-
-        if(CollectionUtils.isEmpty(totalUsers)) {
-            SyncJobAudit syncJobAudit = new SyncJobAudit(200, "success", Source.SYNC);
-            syncJobRepository.save(syncJobAudit);
-        }
-        return totalUsers;
+        return updatedUserList;
     }
 
-    private List<IdamClient.User> callToGetUserFeed(String token, Integer pageNo, Map<String, String> formParams) {
-
-        String newQuery = "roles:\"pui-case-manager\" OR roles:\"pui-user-manager\" OR roles:\"pui-organisation-manager\" OR roles:\"pui-finance-manager\"$PAGE$";
-        String dynamicQuery = newQuery.replace("$PAGE$","&page="+pageNo);
-        log.info("dynamicQuery::" + dynamicQuery);
-        formParams.put("query",dynamicQuery);
-        List<IdamClient.User> usersPerPage = new ArrayList<>();
-        List<IdamClient.User> users = null;
-        Response response  = idamClient.getUserFeed(token, formParams);
-        ResponseEntity responseEntity = JsonFeignResponseHelper.toResponseEntity(response, usersPerPage.getClass());
-        Class clazz = response.status() > 300 ? ErrorResponse.class : IdamClient.User.class;
-
-        if ( response.status() < 300 && responseEntity.getStatusCode().is2xxSuccessful()) {
-
-             users = (List<IdamClient.User>) responseEntity.getBody();
-             log.info("User Size::" + users.size());
-            responseEntity = null;
-            usersPerPage = null;
-        }
-     return  users;
-    }
 
     private List<Integer> numberOfCallsToIdamService(int totalRecords) {
 
@@ -155,7 +132,7 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
         log.info("Inside updateUserProfileFeed");
         String bearerToken = BEARER + getBearerToken();
         getSyncFeed(bearerToken, searchQuery);
-        //profileUpdateService.updateUserProfile(searchQuery, bearerToken, getS2sToken(), getSyncFeed(bearerToken, searchQuery), recordsCount);
+        // profileUpdateService.updateUserProfile(searchQuery, bearerToken, getS2sToken(), getSyncFeed(bearerToken, searchQuery), recordsCount);
         log.info("After updateUserProfileFeed");
     }
 }

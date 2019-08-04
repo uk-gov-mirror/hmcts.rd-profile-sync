@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.profilesync.util;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Response;
@@ -8,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+
+import org.checkerframework.checker.nullness.Opt;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
@@ -32,6 +35,21 @@ public class JsonFeignResponseHelper {
 
     public static ResponseEntity toResponseEntity(Response response, Class clazz) {
         Optional payload = decode(response, clazz);
+
+        return new ResponseEntity(
+                payload.orElse(null),
+                convertHeaders(response.headers()),
+                HttpStatus.valueOf(response.status()));
+    }
+
+    public static ResponseEntity toResponseEntity(Response response, TypeReference reference) {
+        Optional payload = Optional.empty();
+
+        try {
+            payload = Optional.of(json.readValue(response.body().asReader(), reference));
+        } catch (IOException ex){
+            //DO Nothing. as payload will be empty
+        }
 
         return new ResponseEntity(
                 payload.orElse(null),
