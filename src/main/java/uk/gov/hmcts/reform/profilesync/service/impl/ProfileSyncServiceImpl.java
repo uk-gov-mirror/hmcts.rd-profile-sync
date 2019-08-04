@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.profilesync.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import feign.Response;
 
 import java.util.ArrayList;
@@ -77,91 +78,39 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
 
     public List<IdamClient.User> getSyncFeed(String bearerToken, String searchQuery) {
         log.info("Inside getSyncFeed");
-        List<IdamClient.User> totalUsers = new ArrayList<>();
-        List<User> users = new ArrayList<>();
-
-        //Users user = null;
 
         Map<String, String> formParams = new HashMap<>();
         formParams.put("query", searchQuery);
-        Response response  = idamClient.getUserFeed(bearerToken, formParams);
-        ResponseEntity responseEntity = JsonFeignResponseHelper.toResponseEntity(response, IdamClient.User.class);
-        Class clazz = response.status() > 300 ? ErrorResponse.class : IdamClient.User.class;
 
-        if ( response.status() < 300 && responseEntity.getStatusCode().is2xxSuccessful()) {
+        List <IdamClient.User> updatedUserList = new ArrayList<>();
+        int totalCount = 0;
+        int counter = 0;
+        int recordsPerPage = 20;
 
-            int records = Integer.parseInt(responseEntity.getHeaders().get("X-Total-Count").get(0));
-            if (records > 20) {
+        do {
+            formParams.put("page", String.valueOf(counter));
+            Response response  = idamClient.getUserFeed(bearerToken, formParams);
+            ResponseEntity responseEntity = JsonFeignResponseHelper.toResponseEntity(response, new TypeReference<List<IdamClient.User>>() { });
+            Class clazz = response.status() > 300 ? ErrorResponse.class : IdamClient.User.class;
 
-                List<String> totalRecords = new ArrayList<>();
-                // users = (Users) response.body();
-                for (Integer i : numberOfCallsToIdamService(records)) {
+            if ( response.status() < 300 && responseEntity.getStatusCode().is2xxSuccessful()) {
 
-                    callToGetUserFeed(bearerToken,i,formParams,totalUsers);
+                List<IdamClient.User> users =  (List<IdamClient.User>) responseEntity.getBody();
+                log.info("User ::" + users);
+                updatedUserList.addAll(users);
 
+                try {
+                    totalCount = Integer.parseInt(responseEntity.getHeaders().get("X-Total-Count").get(0));
+                } catch (Exception ex) {
+                    //There is No header.
                 }
-
-                log.info("size of the Users array::" + users.size());
-            } else {
-
-             //   totalUsers =  (List<IdamClient.User>) response.body();
-
             }
+            counter ++;
 
-          //  log.info("Found record in User Profile with idamId = {}");
-        }
+        } while (totalCount > 0 && (recordsPerPage * counter) < totalCount);
 
-        if(CollectionUtils.isEmpty(totalUsers)) {
-            SyncJobAudit syncJobAudit = new SyncJobAudit(200, "success", Source.SYNC);
-            syncJobRepository.save(syncJobAudit);
-        }
-        return totalUsers;
+        return updatedUserList;
     }
-
-    private void callToGetUserFeed(String token, Integer pageNo, Map<String, String> formParams,List<IdamClient.User> usersForAllPages) {
-        String newQuery = "roles:\"pui-case-manager\" OR roles:\"pui-user-manager\" OR roles:\"pui-organisation-manager\" OR roles:\"pui-finance-manager\"$PAGE$";
-        String dynamicQuery = newQuery.replace("$PAGE$","&page="+pageNo);
-        log.info("dynamicQuery::" + dynamicQuery);
-        formParams.put("query",dynamicQuery);
-        List<IdamClient.User> usersPerPage = null;
-        Response response  = idamClient.getUserFeed(token, formParams);
-        ResponseEntity responseEntity = JsonFeignResponseHelper.toResponseEntity(response, IdamClient.User.class);
-        Class clazz = response.status() > 300 ? ErrorResponse.class : IdamClient.User.class;
-
-        if ( response.status() < 300 && responseEntity.getStatusCode().is2xxSuccessful()) {
-
-             // usersPerPage = (IdamClient.User) responseEntity.getBody();
-             IdamClient.User users = (IdamClient.User) responseEntity.getBody();
-             log.info("User ::" + users);
-              //usersForAllPages.addAll(usersPerPage);
-        }
-
-    }
-
-
-   /* public List<String>  decode(Response response) throws IOException, FeignException {
-        byte[] body = null;
-        List<String> result = null;
-        if (null != response) {
-
-            //body = response.body() != null ? Util.toByteArray(response.body().asInputStream()) : new byte[0];
-            Reader reader = null;
-            try {
-                reader = response.body().asReader();
-                //Easy way to read the stream and get a String object
-                result = CharStreams.readLines(reader);
-                //use a Jackson ObjectMapper to convert the Json String into a
-                //Pojo
-                ObjectMapper mapper = new ObjectMapper();
-                //just in case you missed an attribute in the Pojo
-                mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-            } catch(Exception e) {
-
-            }
-
-        }
-        return result;
-    }*/
 
 
     private List<Integer> numberOfCallsToIdamService(int totalRecords) {

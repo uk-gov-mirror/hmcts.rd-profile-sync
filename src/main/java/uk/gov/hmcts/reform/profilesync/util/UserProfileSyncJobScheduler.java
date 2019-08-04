@@ -58,7 +58,7 @@ public class UserProfileSyncJobScheduler {
            log.info("NowMINUS::" +  searchQuery);
            searchQuery = searchQuery.replace("$NOW$",LocalDateTime.now().toString());
            log.info("NOW::" + searchQuery);*/
-            String searchQuery1 = "roles:\"pui-case-manager\" OR roles:\"pui-user-manager\" OR roles:\"pui-organisation-manager\" OR roles:\"pui-finance-manager\"$PAGE$";
+            String searchQuery1 = "roles:\"pui-case-manager\" OR roles:\"pui-user-manager\" OR roles:\"pui-organisation-manager\" OR roles:\"pui-finance-manager\"";
 
             log.info("Sync job running every hour::");
             /*for (int i = 0; i <20 ; i++) {
