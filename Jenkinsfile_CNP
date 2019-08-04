@@ -1,0 +1,48 @@
+#!groovy
+
+@Library("Infrastructure")
+
+def type = "java"
+def product = "rd"
+def component = "profile-sync"
+
+def secrets = [
+  's2s-${env}': [
+    secret('microservicekey-rd-professional-api', 'S2S_SECRET')
+  ]
+]
+
+static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
+    [$class     : 'AzureKeyVaultSecret',
+     secretType : 'Secret',
+     name       : secretName,
+     version    : '',
+     envVariable: envVar
+    ]
+}
+
+def vaultOverrides = [
+    'preview' : 'aat',
+    'spreview': 'saat'
+]
+
+withPipeline(type, product, component) {
+
+    overrideVaultEnvironments(vaultOverrides)
+    loadVaultSecrets(secrets)
+
+    enableDbMigration()
+    enableDockerBuild()
+    installCharts()
+
+    env.S2S_URL_FOR_TESTS = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
+
+    after('functionalTest:preview') {
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+    }
+
+    after('functionalTest:aat') {
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+    }
+
+}
