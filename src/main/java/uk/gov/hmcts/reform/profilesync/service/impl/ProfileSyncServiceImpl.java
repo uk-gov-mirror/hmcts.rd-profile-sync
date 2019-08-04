@@ -1,24 +1,16 @@
 package uk.gov.hmcts.reform.profilesync.service.impl;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.CharStreams;
-import feign.FeignException;
 import feign.Response;
-import feign.Util;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.ResponseEntity;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -112,7 +104,7 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
                 log.info("size of the Users array::" + users.size());
             } else {
 
-                totalUsers =  (List<IdamClient.User>) response.body();
+             //   totalUsers =  (List<IdamClient.User>) response.body();
 
             }
 
@@ -138,8 +130,10 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
 
         if ( response.status() < 300 && responseEntity.getStatusCode().is2xxSuccessful()) {
 
-            usersPerPage = ( List<IdamClient.User>) response.body();
-            usersForAllPages.addAll(usersPerPage);
+             // usersPerPage = (IdamClient.User) responseEntity.getBody();
+             IdamClient.User users = (IdamClient.User) responseEntity.getBody();
+             log.info("User ::" + users);
+              //usersForAllPages.addAll(usersPerPage);
         }
 
     }
