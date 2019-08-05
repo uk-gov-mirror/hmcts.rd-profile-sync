@@ -11,12 +11,9 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
 import uk.gov.hmcts.reform.profilesync.client.UserProfileClient;
-import uk.gov.hmcts.reform.profilesync.domain.UserProfileResponse;
-import uk.gov.hmcts.reform.profilesync.domain.ErrorResponse;
 import uk.gov.hmcts.reform.profilesync.domain.GetUserProfileResponse;
 import uk.gov.hmcts.reform.profilesync.domain.IdamStatus;
 import uk.gov.hmcts.reform.profilesync.domain.Source;
@@ -25,7 +22,6 @@ import uk.gov.hmcts.reform.profilesync.domain.UserProfile;
 import uk.gov.hmcts.reform.profilesync.repository.SyncJobRepository;
 import uk.gov.hmcts.reform.profilesync.service.ProfileUpdateService;
 import uk.gov.hmcts.reform.profilesync.service.UserAcquisitionService;
-import uk.gov.hmcts.reform.profilesync.util.JsonFeignResponseHelper;
 
 @Slf4j
 @AllArgsConstructor
@@ -76,18 +72,14 @@ public class ProfileUpdateServiceImpl implements ProfileUpdateService {
         try {
             Response response = userProfileClient.syncUserStatus(bearerToken, s2sToken, userId, updatedUserProfile);
 
-            ResponseEntity responseEntity = JsonFeignResponseHelper.toResponseEntity(response, UserProfileResponse.class);
-
-            Class clazz = response.status() > 300 ? ErrorResponse.class : UserProfileResponse.class;
-
             if (response.status() > 300) {
 
                 log.error("Exception occurred : Status - {}", response.status());
                 saveSyncJobAudit(response.status(),"fail");
-               throw new Exception();
+
             }
-        } catch (FeignException ex) {
-            log.error("Exception occurred : Status - {}, Content - {}", ex.status());
+        } catch (Exception ex) {
+            log.error("Exception occurred : Status - {}, Content - {}", ex);
             saveSyncJobAudit(500,"fail");
             throw new Exception();
         }

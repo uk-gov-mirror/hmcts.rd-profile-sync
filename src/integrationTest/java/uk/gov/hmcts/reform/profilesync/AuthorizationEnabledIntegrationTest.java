@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.profilesync;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
@@ -28,7 +27,7 @@ import uk.gov.hmcts.reform.profilesync.util.UserProfileSyncJobScheduler;
 public abstract class AuthorizationEnabledIntegrationTest  extends SpringBootIntegrationTest{
 
     @Autowired
-    protected SyncJobRepository organisationRepository;
+    protected SyncJobRepository syncJobRepository;
 
     @Autowired
     protected UserProfileClient userProfileFeignClient;
@@ -64,39 +63,44 @@ public abstract class AuthorizationEnabledIntegrationTest  extends SpringBootInt
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
-                        .withBody("it")));
+                        .withBody("it.ad03e.ef4fac86")));
 
-        sidamService.stubFor(get(urlEqualTo("/details"))
-                .withHeader("Authorization", equalTo("Bearer eyJ0eXAiOiJKV1QiLCJ6aXAiOiJOT05FIiwia2lkIjoiYi9PNk92VnYxK3krV2dySDVVaTlXVGlvTHQwPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJzdXBlci51c2VyQGhtY3RzLm5ldCIsImF1dGhfbGV2ZWwiOjAsImF1ZGl0VHJhY2tpbmdJZCI6IjZiYTdkYTk4LTRjMGYtNDVmNy04ZjFmLWU2N2NlYjllOGI1OCIsImlzcyI6Imh0dHA6Ly9mci1hbTo4MDgwL29wZW5hbS9vYXV0aDIvaG1jdHMiLCJ0b2tlbk5hbWUiOiJhY2Nlc3NfdG9rZW4iLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiYXV0aEdyYW50SWQiOiI0NjAzYjVhYS00Y2ZhLTRhNDQtYWQzZC02ZWI0OTI2YjgxNzYiLCJhdWQiOiJteV9yZWZlcmVuY2VfZGF0YV9jbGllbnRfaWQiLCJuYmYiOjE1NTk4OTgxNzMsImdyYW50X3R5cGUiOiJhdXRob3JpemF0aW9uX2NvZGUiLCJzY29wZSI6WyJhY3IiLCJvcGVuaWQiLCJwcm9maWxlIiwicm9sZXMiLCJjcmVhdGUtdXNlciIsImF1dGhvcml0aWVzIl0sImF1dGhfdGltZSI6MTU1OTg5ODEzNTAwMCwicmVhbG0iOiIvaG1jdHMiLCJleHAiOjE1NTk5MjY5NzMsImlhdCI6MTU1OTg5ODE3MywiZXhwaXJlc19pbiI6Mjg4MDAsImp0aSI6IjgxN2ExNjE0LTVjNzAtNGY4YS05OTI3LWVlYjFlYzJmYWU4NiJ9.RLJyLEKldHeVhQEfSXHhfOpsD_b8dEBff7h0P4nZVLVNzVkNoiPdXYJwBTSUrXl4pyYJXEhdBwkInGp3OfWQKhHcp73_uE6ZXD0eIDZRvCn1Nvi9FZRyRMFQWl1l3Dkn2LxLMq8COh1w4lFfd08aj-VdXZa5xFqQefBeiG_xXBxWkJ-nZcW3tTXU0gUzarGY0xMsFTtyRRilpcup0XwVYhs79xytfbq0WklaMJ-DBTD0gux97KiWBrM8t6_5PUfMDBiMvxKfRNtwGD8gN8Vct9JUgVTj9DAIwg0KPPm1rEETRPszYI2wWvD2lpH2AwUtLBlRDANIkN9SdfiHSETvoQ"))
+        s2sService.stubFor(WireMock.post(urlEqualTo("/lease"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJyZF9wcm9mZXNzaW9uYWxfYXBpIiwiZXhwIjoxNTY0NzU2MzY4fQ.UnRfwq_yGo6tVWEoBldCkD1zFoiMSqqm1rTHqq4f_PuTEHIJj2IHeARw3wOnJG2c3MpjM71ZTFa0RNE4D2AUgA")));
+
+        sidamService.stubFor(WireMock.post(urlPathMatching("/oauth2/authorize"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{"
-                                + "  \"id\": \"ef4fac86-d3e8-47b6-88a7-c7477fb69d3f\","
-                                + "  \"forename\": \"Super\","
-                                + "  \"surname\": \"User\","
-                                + "  \"email\": \"super.user@hmcts.net\","
-                                + "  \"accountStatus\": \"active\","
-                                + "  \"roles\": ["
-                                + "  \"pui-case-manager\""
-                                + "  ]"
+                                + " \"code\": \"ef4fac86-d3e8-47b6-88a7-c7477fb69d3f\""
                                 + "}")));
 
-        sidamService.stubFor(get(urlEqualTo("/api/v1/users"))
-               // .withHeader("Authorization", equalTo("Bearer eyJ0eXAiOiJKV1QiLCJ6aXAiOiJOT05FIiwia2lkIjoiYi9PNk92VnYxK3krV2dySDVVaTlXVGlvTHQwPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJzdXBlci51c2VyQGhtY3RzLm5ldCIsImF1dGhfbGV2ZWwiOjAsImF1ZGl0VHJhY2tpbmdJZCI6IjZiYTdkYTk4LTRjMGYtNDVmNy04ZjFmLWU2N2NlYjllOGI1OCIsImlzcyI6Imh0dHA6Ly9mci1hbTo4MDgwL29wZW5hbS9vYXV0aDIvaG1jdHMiLCJ0b2tlbk5hbWUiOiJhY2Nlc3NfdG9rZW4iLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiYXV0aEdyYW50SWQiOiI0NjAzYjVhYS00Y2ZhLTRhNDQtYWQzZC02ZWI0OTI2YjgxNzYiLCJhdWQiOiJteV9yZWZlcmVuY2VfZGF0YV9jbGllbnRfaWQiLCJuYmYiOjE1NTk4OTgxNzMsImdyYW50X3R5cGUiOiJhdXRob3JpemF0aW9uX2NvZGUiLCJzY29wZSI6WyJhY3IiLCJvcGVuaWQiLCJwcm9maWxlIiwicm9sZXMiLCJjcmVhdGUtdXNlciIsImF1dGhvcml0aWVzIl0sImF1dGhfdGltZSI6MTU1OTg5ODEzNTAwMCwicmVhbG0iOiIvaG1jdHMiLCJleHAiOjE1NTk5MjY5NzMsImlhdCI6MTU1OTg5ODE3MywiZXhwaXJlc19pbiI6Mjg4MDAsImp0aSI6IjgxN2ExNjE0LTVjNzAtNGY4YS05OTI3LWVlYjFlYzJmYWU4NiJ9.RLJyLEKldHeVhQEfSXHhfOpsD_b8dEBff7h0P4nZVLVNzVkNoiPdXYJwBTSUrXl4pyYJXEhdBwkInGp3OfWQKhHcp73_uE6ZXD0eIDZRvCn1Nvi9FZRyRMFQWl1l3Dkn2LxLMq8COh1w4lFfd08aj-VdXZa5xFqQefBeiG_xXBxWkJ-nZcW3tTXU0gUzarGY0xMsFTtyRRilpcup0XwVYhs79xytfbq0WklaMJ-DBTD0gux97KiWBrM8t6_5PUfMDBiMvxKfRNtwGD8gN8Vct9JUgVTj9DAIwg0KPPm1rEETRPszYI2wWvD2lpH2AwUtLBlRDANIkN9SdfiHSETvoQ"))
+        sidamService.stubFor(WireMock.post(urlPathMatching("/oauth2/token"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{"
+                                + "  \"access_token\": \"ef4fac86-d3e8-47b6-88a7-c7477fb69d3f\""
+                                + "}")));
+
+        sidamService.stubFor(get(urlPathMatching("/api/v1/users"))
+               .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("[{"
                                 + "  \"id\": \"ef4fac86-d3e8-47b6-88a7-c7477fb69d3f\","
                                 + "  \"forename\": \"Super\","
                                 + "  \"surname\": \"User\","
                                 + "  \"email\": \"super.user@hmcts.net\","
-                                + "  \"accountStatus\": \"active\","
+                                + "  \"active\": \"true\","
                                 + "  \"roles\": ["
                                 + "  \"pui-case-manager\""
                                 + "  ]"
-                                + "}")));
+                                + "}]")));
 
     }
 
@@ -105,7 +109,7 @@ public abstract class AuthorizationEnabledIntegrationTest  extends SpringBootInt
     @Before
     public void userProfileGetUserWireMock() {
 
-        userProfileService.stubFor(WireMock.get(urlPathMatching("/v1/userprofile.*"))
+        userProfileService.stubFor(WireMock.get(urlEqualTo("/v1/userprofile?userId=ef4fac86-d3e8-47b6-88a7-c7477fb69d3f"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withStatus(200)
@@ -121,7 +125,7 @@ public abstract class AuthorizationEnabledIntegrationTest  extends SpringBootInt
     @Before
     public void userProfileSyncWireMock() {
 
-        userProfileService.stubFor(WireMock.put(urlPathMatching("/v1/userprofile/*"))
+        userProfileService.stubFor(WireMock.put(urlPathMatching("/v1/userprofile/ef4fac86-d3e8-47b6-88a7-c7477fb69d3f"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withStatus(200)));
@@ -131,7 +135,7 @@ public abstract class AuthorizationEnabledIntegrationTest  extends SpringBootInt
     @After
     public void cleanupTestData() {
 
-
+        syncJobRepository.deleteAll();
     }
 
     public void userProfileCreateUserWireMock(HttpStatus status) {

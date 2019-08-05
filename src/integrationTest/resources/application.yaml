@@ -23,8 +23,7 @@ idam:
     url: ${S2S_URL:http://127.0.0.1:8990}
     totp_secret: ${S2S_SECRET:K6KA6PRLRFWQLSD6}
     microservice: rd_professional_api
-  api:
-    url: ${IDAM_URL:http://127.0.0.1:5000}
+
 ## IDAM feign connection
 auth:
   idam:

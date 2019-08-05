@@ -37,7 +37,7 @@ public class UserProfileSyncJobScheduler {
 
         log.info("The time is now {}", dateFormat.format(new Date()));
 
-        String searchQuery = "roles:\"pui-case-manager\" OR roles:\"pui-user-manager\" OR roles:\"pui-organisation-manager\" OR roles:\"pui-finance-manager\" AND lastModified:>now-5h";
+        String searchQuery = "roles:\"pui-case-manager\" OR roles:\"pui-user-manager\" OR roles:\"pui-organisation-manager\" OR roles:\"pui-finance-manager\" AND lastModified:>now-1h";
 
         List<SyncJobAudit>  syncJobAudits = syncJobRepository.findAll();
 
@@ -46,7 +46,7 @@ public class UserProfileSyncJobScheduler {
         if (null != syncJobRepository.findFirstByStatusOrderByAuditTsDesc("fail")) {
 
             SyncJobAudit auditjob = syncJobRepository.findFirstByStatusOrderByAuditTsDesc("success");
-            searchQuery =  searchQuery.replace("5",getLastBatchFailureTimeInHours(auditjob.getAuditTs()));
+            searchQuery =  searchQuery.replace("1",getLastBatchFailureTimeInHours(auditjob.getAuditTs()));
             log.info("searchQuery::",searchQuery);
         }
         try {
@@ -55,8 +55,9 @@ public class UserProfileSyncJobScheduler {
             SyncJobAudit syncJobAudit = new SyncJobAudit(201, "success", Source.SYNC);
             syncJobRepository.save(syncJobAudit);
         } catch (Exception e) {
-
-            log.error("Sync Batch Job Failed::",LocalDateTime.now());
+            SyncJobAudit syncJobAudit = new SyncJobAudit(500, "fail", Source.SYNC);
+            syncJobRepository.save(syncJobAudit);
+            log.error("Sync Batch Job Failed::",e);
         }
     }
 

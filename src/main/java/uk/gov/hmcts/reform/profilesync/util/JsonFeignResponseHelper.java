@@ -48,7 +48,7 @@ public class JsonFeignResponseHelper {
         try {
             payload = Optional.of(json.readValue(response.body().asReader(), reference));
         } catch (IOException ex){
-            //DO Nothing. as payload will be empty
+            System.out.println(ex);
         }
 
         return new ResponseEntity(

@@ -62,7 +62,7 @@ security:
 ### dependency configuration
 auth.provider.service.client.baseUrl: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
 auth.idam.client.detailsUri: "/details"
-auth.idam.client.baseUrl: ${idam_url:https://idam-api.preview.platform.hmcts.net}
+auth.idam.client.baseUrl: ${IDAM_URL:https://idam-api.preview.platform.hmcts.net}
 idam:
   api:
     url: ${IDAM_URL:https://idam-api.preview.platform.hmcts.net}
