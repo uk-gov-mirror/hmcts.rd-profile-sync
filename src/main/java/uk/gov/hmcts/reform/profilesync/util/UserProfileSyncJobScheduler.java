@@ -32,7 +32,7 @@ public class UserProfileSyncJobScheduler {
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-DD HH:mm:ss");
 
 
-    @Scheduled(cron = "0 0 * * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void updateIdamDataWithUserProfile() {
 
         log.info("The time is now {}", dateFormat.format(new Date()));

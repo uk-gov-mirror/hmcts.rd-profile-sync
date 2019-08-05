@@ -39,7 +39,7 @@ public abstract class AuthorizationEnabledIntegrationTest  extends SpringBootInt
     @Autowired
     UserProfileSyncJobScheduler profileSyncJobScheduler ;
 
-    @Autowired
+    //@Autowired
     protected ProfileSyncApplicationTest profileSyncApplicationTest;
 
     @Rule
@@ -54,7 +54,7 @@ public abstract class AuthorizationEnabledIntegrationTest  extends SpringBootInt
 
     @Before
     public void setUpClient() {
-        profileSyncApplicationTest = new ProfileSyncApplicationTest(port);
+        profileSyncApplicationTest = new ProfileSyncApplicationTest();
     }
 
     @Before

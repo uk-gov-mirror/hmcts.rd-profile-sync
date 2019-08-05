@@ -6,13 +6,12 @@ import java.util.Map;
 
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
 public class ProfileSyncApplicationTest {
 
 
@@ -24,18 +23,8 @@ public class ProfileSyncApplicationTest {
         }
      };
 
-    private final int prdApiPort;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RestTemplate restTemplate = new RestTemplate();
-    private String baseUrl;
-    private String baseIntUrl;
-
-    public ProfileSyncApplicationTest(int prdApiPort) {
-
-        this.prdApiPort = prdApiPort;
-
-    }
-
 
     private HttpHeaders getMultipleAuthHeaders(String role) {
 
