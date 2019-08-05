@@ -13,14 +13,10 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
 import uk.gov.hmcts.reform.profilesync.config.TokenConfigProperties;
 import uk.gov.hmcts.reform.profilesync.domain.ErrorResponse;
-import uk.gov.hmcts.reform.profilesync.domain.Source;
-import uk.gov.hmcts.reform.profilesync.domain.SyncJobAudit;
-import uk.gov.hmcts.reform.profilesync.domain.User;
 import uk.gov.hmcts.reform.profilesync.repository.SyncJobRepository;
 import uk.gov.hmcts.reform.profilesync.service.ProfileSyncService;
 import uk.gov.hmcts.reform.profilesync.service.ProfileUpdateService;
@@ -29,6 +25,7 @@ import uk.gov.hmcts.reform.profilesync.util.JsonFeignResponseHelper;
 @Service
 @AllArgsConstructor
 @Slf4j
+@SuppressWarnings("unchecked")
 public class ProfileSyncServiceImpl implements ProfileSyncService {
 
     @Autowired
@@ -112,27 +109,11 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
         return updatedUserList;
     }
 
-
-    private List<Integer> numberOfCallsToIdamService(int totalRecords) {
-
-        List<Integer> pages =  new ArrayList<>();
-        int pageCount = totalRecords/20;
-        int index = 0;
-        if (totalRecords%20 > 0) {
-            pageCount = pageCount + 1;
-        }
-        while(index<pageCount) {
-            pages.add(index);
-            index ++;
-        }
-        return pages;
-    }
-
-    public void updateUserProfileFeed(String searchQuery, int recordsCount) {
+    public void updateUserProfileFeed(String searchQuery) throws Exception {
         log.info("Inside updateUserProfileFeed");
         String bearerToken = BEARER + getBearerToken();
-        getSyncFeed(bearerToken, searchQuery);
-        // profileUpdateService.updateUserProfile(searchQuery, bearerToken, getS2sToken(), getSyncFeed(bearerToken, searchQuery), recordsCount);
+        //getSyncFeed(bearerToken, searchQuery);
+        profileUpdateService.updateUserProfile(searchQuery, bearerToken, getS2sToken(), getSyncFeed(bearerToken, searchQuery));
         log.info("After updateUserProfileFeed");
     }
 }

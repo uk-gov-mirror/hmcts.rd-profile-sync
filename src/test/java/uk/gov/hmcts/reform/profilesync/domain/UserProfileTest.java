@@ -49,10 +49,10 @@ public class UserProfileTest {
         assertThat(sut.getPostalCommsConsentTs()).isEqualTo(MockDataProvider.currentTime);
     }
 
-    @Test
-    public void testGetStatus() {
+    //@Test
+    /*public void testGetStatus() {
         assertThat(sut.getStatus()).isEqualTo(MockDataProvider.status);
-    }
+    }*/
 
     @Test
     public void testGetIdamRegistrationResponse() {

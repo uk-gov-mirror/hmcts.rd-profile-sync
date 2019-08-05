@@ -4,13 +4,13 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
-public class UserProfileException extends RuntimeException {
+public class UserProfileSyncException extends RuntimeException {
 
     private HttpStatus httpStatus;
 
     private String errorMessage;
 
-    public UserProfileException(HttpStatus httpStatus, String errorMessage) {
+    public UserProfileSyncException(HttpStatus httpStatus, String errorMessage) {
         super(errorMessage);
         this.httpStatus = httpStatus;
         this.errorMessage = errorMessage;

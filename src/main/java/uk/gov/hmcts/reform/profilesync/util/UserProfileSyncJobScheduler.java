@@ -12,6 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.profilesync.domain.Source;
 import uk.gov.hmcts.reform.profilesync.domain.SyncJobAudit;
 import uk.gov.hmcts.reform.profilesync.repository.SyncJobRepository;
 import uk.gov.hmcts.reform.profilesync.service.ProfileSyncService;
@@ -30,15 +31,13 @@ public class UserProfileSyncJobScheduler {
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-DD HH:mm:ss");
 
-    int count = 0;
-    @Scheduled(cron = "*/500 * * * * *")
+
+    @Scheduled(cron = "0 0 * * * * *")
     public void updateIdamDataWithUserProfile() {
 
         log.info("The time is now {}", dateFormat.format(new Date()));
-       // String searchQuery = "/api/v1/users?page=0&query=lastModified:%5B$NOWMINUSONEHOUR$ TO $NOW$%5D AND (roles:pui-case-manager OR roles:pui-user-manager)";
-        String searchQuery = "roles:\"pui-case-manager\" OR roles:\"pui-user-manager\" OR roles:\"pui-organisation-manager\" OR roles:\"pui-finance-manager\"  AND lastModified:>now-5h";
 
-        log.info("searchQuery::",searchQuery);
+        String searchQuery = "roles:\"pui-case-manager\" OR roles:\"pui-user-manager\" OR roles:\"pui-organisation-manager\" OR roles:\"pui-finance-manager\" AND lastModified:>now-5h";
 
         List<SyncJobAudit>  syncJobAudits = syncJobRepository.findAll();
 
@@ -47,27 +46,18 @@ public class UserProfileSyncJobScheduler {
         if (null != syncJobRepository.findFirstByStatusOrderByAuditTsDesc("fail")) {
 
             SyncJobAudit auditjob = syncJobRepository.findFirstByStatusOrderByAuditTsDesc("success");
-
-            log.info("Last Success::" + auditjob.getAuditTs() + ":: Now :" + LocalDateTime.now());
-            searchQuery =  searchQuery.replace("1",getLastBatchFailureTimeInHours(auditjob.getAuditTs()));
-            profileSyncService.updateUserProfileFeed(searchQuery,count);
-
-        } else {
-
-           /*searchQuery = searchQuery.replace("$NOWMINUSONEHOUR$",LocalDateTime.now().minusHours(1).toString());
-           log.info("NowMINUS::" +  searchQuery);
-           searchQuery = searchQuery.replace("$NOW$",LocalDateTime.now().toString());
-           log.info("NOW::" + searchQuery);*/
-            String searchQuery1 = "roles:\"pui-case-manager\" OR roles:\"pui-user-manager\" OR roles:\"pui-organisation-manager\" OR roles:\"pui-finance-manager\"";
-
-            log.info("Sync job running every hour::");
-            /*for (int i = 0; i <20 ; i++) {
-
-                profileSyncService.createUserProfile();
-            }*/
-           profileSyncService.updateUserProfileFeed(searchQuery1, count);
+            searchQuery =  searchQuery.replace("5",getLastBatchFailureTimeInHours(auditjob.getAuditTs()));
+            log.info("searchQuery::",searchQuery);
         }
+        try {
 
+            profileSyncService.updateUserProfileFeed(searchQuery);
+            SyncJobAudit syncJobAudit = new SyncJobAudit(201, "success", Source.SYNC);
+            syncJobRepository.save(syncJobAudit);
+        } catch (Exception e) {
+
+            log.error("Sync Batch Job Failed::",LocalDateTime.now());
+        }
     }
 
     /**
@@ -77,20 +67,15 @@ public class UserProfileSyncJobScheduler {
      */
     private String getLastBatchFailureTimeInHours(LocalDateTime lastSuccessBatch) {
 
-        long hoursDiff = 0;
+        long hoursDiff = 1;
         Duration duration = Duration.between(LocalDateTime.now(), lastSuccessBatch);
-        //long diff = Math.abs(duration.toHours());
         long minutesDiff = Math.abs(duration.toMinutes());
-
         if (minutesDiff > 60) {
             hoursDiff = minutesDiff/60;
             if (minutesDiff%60 > 0) {
                 hoursDiff = hoursDiff + 1;
             }
-            log.info("Diff of Hour::" + hoursDiff);
-        } else {
-
-            hoursDiff = 1;
+            log.info("Diff of Hours::" + hoursDiff);
         }
         log.info("Since Last Batch failure in sync job in hours:: " + hoursDiff);
         return Long.valueOf(hoursDiff).toString();

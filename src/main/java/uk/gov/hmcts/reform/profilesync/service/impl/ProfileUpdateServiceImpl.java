@@ -41,7 +41,7 @@ public class ProfileUpdateServiceImpl implements ProfileUpdateService {
     @Autowired
     private final SyncJobRepository syncJobRepository;
 
-    public void updateUserProfile(String searchQuery, String bearerToken, String s2sToken, List<IdamClient.User> users, int count) {
+    public void updateUserProfile(String searchQuery, String bearerToken, String s2sToken, List<IdamClient.User> users) throws Exception {
         log.info("In side updateUserProfile:: ");
         users.forEach(user -> {
             Optional<GetUserProfileResponse> userProfile = userAcquisitionService.findUser(bearerToken, s2sToken, user.getId().toString());
@@ -57,16 +57,22 @@ public class ProfileUpdateServiceImpl implements ProfileUpdateService {
                         .idamStatus(iDamStatusResolver().get(status) != null ? iDamStatusResolver().get(status).name() : "PENDING")
                         .build();
 
-                syncUser(bearerToken,s2sToken,user.getId().toString(),updatedUserProfile);
+                try{
 
+                    syncUser(bearerToken,s2sToken,user.getId().toString(),updatedUserProfile);
+
+                } catch (Exception e) {
+                    log.error("User Not updated : Id - {}", user.getId().toString());
+                    e.printStackTrace();
+                }
                 log.info("User updated : Id - {}", user.getId().toString());
             }
         });
     }
 
-    private Optional<UserProfileResponse> syncUser(String bearerToken, String s2sToken,
-                                                   String userId, UserProfile updatedUserProfile) {
-        UserProfileResponse userProfile = null;
+    private void syncUser(String bearerToken, String s2sToken,
+                                                   String userId, UserProfile updatedUserProfile)throws Exception {
+
         try {
             Response response = userProfileClient.syncUserStatus(bearerToken, s2sToken, userId, updatedUserProfile);
 
@@ -76,34 +82,22 @@ public class ProfileUpdateServiceImpl implements ProfileUpdateService {
 
             if (response.status() > 300) {
 
-                saveSyncJobAudit(response.status(),"fail");
                 log.error("Exception occurred : Status - {}", response.status());
-
-               //return  Optional.ofNullable(userProfile);
-            } else if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                userProfile = (UserProfileResponse) responseEntity.getBody();
-                log.info("User record updated in User Profile with idamId = {}");
-
+                saveSyncJobAudit(response.status(),"fail");
+               throw new Exception();
             }
         } catch (FeignException ex) {
             log.error("Exception occurred : Status - {}, Content - {}", ex.status());
             saveSyncJobAudit(500,"fail");
+            throw new Exception();
         }
 
-        return Optional.ofNullable(userProfile);
     }
 
     private void saveSyncJobAudit(Integer iDamResponse,String message) {
 
         SyncJobAudit syncJobAudit = new SyncJobAudit(iDamResponse, message, Source.SYNC);
         syncJobRepository.save(syncJobAudit);
-    }
-
-    @Override
-    public List<SyncJobAudit> findByStatus(String status) {
-
-       List<SyncJobAudit> syncJobAudits =  syncJobRepository.findByStatus(status);
-       return syncJobAudits;
     }
 
     public Map<Map<String, Boolean>, IdamStatus> iDamStatusResolver() {

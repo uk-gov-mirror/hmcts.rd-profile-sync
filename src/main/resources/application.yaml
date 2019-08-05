@@ -11,9 +11,10 @@ management:
   endpoint:
     health:
       show-details: "always"
+
 spring:
   application:
-    name: rd-profile-sync
+    name: RD Profile SYNC API
   jackson.date-format: yyyy-MM-dd
   flyway.enabled: true
 
