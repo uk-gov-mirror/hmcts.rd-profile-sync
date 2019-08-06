@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.profilesync.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.UUID;
 import org.junit.Test;
 import uk.gov.hmcts.reform.profilesync.helper.MockDataProvider;
 
@@ -29,14 +30,25 @@ public class UserProfileTest {
         assertThat(sut.getLastName()).isEqualTo(MockDataProvider.lastName);
     }
 
-    //@Test
-    /*public void testGetStatus() {
-        assertThat(sut.getStatus()).isEqualTo(MockDataProvider.status);
-    }*/
+    @Test
+    public void testGetStatus() {
+        assertThat(sut.getIdamStatus()).isEqualTo(MockDataProvider.status);
+    }
 
     @Test
     public void testGetIdamRegistrationResponse() {
         assertThat(sut.getIdamRegistrationResponse()).isEqualTo(MockDataProvider.idamRegistrationResponse);
+    }
+
+    @Test
+    public void testSetGetValues() {
+
+        UserProfile profile = UserProfile.builder().idamId(UUID.randomUUID())
+                .email("email@org.com")
+                .firstName("firstName")
+                .lastName("lastName")
+                .idamStatus(IdamStatus.ACTIVE.name()).build();
+        assertThat(profile.getIdamStatus()).isEqualTo(IdamStatus.ACTIVE.name());
     }
 
 

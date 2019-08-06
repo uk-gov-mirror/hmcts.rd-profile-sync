@@ -48,7 +48,7 @@ public class MockDataProvider {
                 .email(email)
                 .firstName(firstName)
                 .lastName(lastName)
-                // .status(status)
+                .idamStatus(status)
                 .idamRegistrationResponse(idamRegistrationResponse)
                 .build();
     }

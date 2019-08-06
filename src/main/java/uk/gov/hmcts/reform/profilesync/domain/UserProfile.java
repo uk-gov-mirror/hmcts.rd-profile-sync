@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.profilesync.domain;
 
 import java.util.UUID;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +9,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-@AllArgsConstructor
 public class UserProfile {
 
     private UUID idamId;

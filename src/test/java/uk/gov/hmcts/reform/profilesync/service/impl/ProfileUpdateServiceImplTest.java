@@ -6,9 +6,15 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import feign.Request;
+import feign.Response;
+
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -16,6 +22,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
 import uk.gov.hmcts.reform.profilesync.client.UserProfileClient;
 import uk.gov.hmcts.reform.profilesync.domain.GetUserProfileResponse;
+import uk.gov.hmcts.reform.profilesync.domain.IdamStatus;
 import uk.gov.hmcts.reform.profilesync.domain.UserProfile;
 import uk.gov.hmcts.reform.profilesync.helper.MockDataProvider;
 import uk.gov.hmcts.reform.profilesync.repository.SyncJobRepository;
@@ -43,13 +50,20 @@ public class ProfileUpdateServiceImplTest {
         users.add(MockDataProvider.getIdamUser());
         users.add(MockDataProvider.getIdamUser());
 
-        UserProfile userProfile = MockDataProvider.getUserProfile();
+        UserProfile profile = UserProfile.builder().idamId(UUID.randomUUID())
+                .email("email@org.com")
+                .firstName("firstName")
+                .lastName("lastName")
+                .idamStatus(IdamStatus.ACTIVE.name()).build();
 
-        final GetUserProfileResponse getUserProfileResponse = new GetUserProfileResponse(userProfile);
+        GetUserProfileResponse userProfileResponse = new GetUserProfileResponse(profile);
 
-        Optional<GetUserProfileResponse> userProfileOpt = Optional.ofNullable(getUserProfileResponse);
+        ObjectMapper mapper = new ObjectMapper();
 
-        when(userAcquisitionServiceMock.findUser(any(String.class), any(String.class), any(String.class))).thenReturn(userProfileOpt);
+        String body = mapper.writeValueAsString(userProfileResponse);
+
+        when(userProfileClientMock.findUser(any(), any(), any())).thenReturn(Response.builder().request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(), Request.Body.empty())).body(body, Charset.defaultCharset()).status(200).build());
+
         when(tokenGeneratorMock.generate()).thenReturn(s2sToken);
 
         sut.updateUserProfile(searchQuery, bearerToken, s2sToken, users);

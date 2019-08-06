@@ -1,11 +1,9 @@
 package uk.gov.hmcts.reform.profilesync.domain;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@Builder
 @NoArgsConstructor
 public class ErrorResponse {
 
