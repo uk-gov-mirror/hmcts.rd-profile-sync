@@ -10,6 +10,7 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
 import uk.gov.hmcts.reform.profilesync.client.UserProfileClient;
@@ -18,6 +19,7 @@ import uk.gov.hmcts.reform.profilesync.domain.IdamStatus;
 import uk.gov.hmcts.reform.profilesync.domain.Source;
 import uk.gov.hmcts.reform.profilesync.domain.SyncJobAudit;
 import uk.gov.hmcts.reform.profilesync.domain.UserProfile;
+import uk.gov.hmcts.reform.profilesync.domain.UserProfileSyncException;
 import uk.gov.hmcts.reform.profilesync.repository.SyncJobRepository;
 import uk.gov.hmcts.reform.profilesync.service.ProfileUpdateService;
 import uk.gov.hmcts.reform.profilesync.service.UserAcquisitionService;
@@ -36,7 +38,7 @@ public class ProfileUpdateServiceImpl implements ProfileUpdateService {
     @Autowired
     private final SyncJobRepository syncJobRepository;
 
-    public void updateUserProfile(String searchQuery, String bearerToken, String s2sToken, List<IdamClient.User> users) throws Exception {
+    public void updateUserProfile(String searchQuery, String bearerToken, String s2sToken, List<IdamClient.User> users) throws UserProfileSyncException {
         log.info("In side updateUserProfile:: ");
         users.forEach(user -> {
             Optional<GetUserProfileResponse> userProfile = userAcquisitionService.findUser(bearerToken, s2sToken, user.getId().toString());
@@ -56,7 +58,7 @@ public class ProfileUpdateServiceImpl implements ProfileUpdateService {
 
                     syncUser(bearerToken,s2sToken,user.getId().toString(),updatedUserProfile);
 
-                } catch (Exception e) {
+                } catch (UserProfileSyncException e) {
                     log.error("User Not updated : Id - {}", user.getId().toString());
                     e.printStackTrace();
                 }
@@ -66,21 +68,17 @@ public class ProfileUpdateServiceImpl implements ProfileUpdateService {
     }
 
     private void syncUser(String bearerToken, String s2sToken,
-                                                   String userId, UserProfile updatedUserProfile)throws Exception {
+                          String userId, UserProfile updatedUserProfile)throws UserProfileSyncException {
 
-        try {
-            Response response = userProfileClient.syncUserStatus(bearerToken, s2sToken, userId, updatedUserProfile);
 
-            if (response.status() > 300) {
+        Response response = userProfileClient.syncUserStatus(bearerToken, s2sToken, userId, updatedUserProfile);
 
-                log.error("Exception occurred : Status - {}", response.status());
-                saveSyncJobAudit(response.status(),"fail");
+        if (response.status() > 300) {
 
-            }
-        } catch (Exception ex) {
-            log.error("Exception occurred : Status - {}, Content - {}", ex);
-            saveSyncJobAudit(500,"fail");
-            throw new Exception();
+            log.error("Exception occurred : Status - {}", response.status());
+            saveSyncJobAudit(response.status(),"fail");
+            throw new UserProfileSyncException(HttpStatus.valueOf(response.status()),"Failed to update");
+
         }
 
     }

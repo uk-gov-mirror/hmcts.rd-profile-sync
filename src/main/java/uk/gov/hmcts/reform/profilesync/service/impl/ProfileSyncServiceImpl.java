@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
 import uk.gov.hmcts.reform.profilesync.config.TokenConfigProperties;
 import uk.gov.hmcts.reform.profilesync.domain.ErrorResponse;
+import uk.gov.hmcts.reform.profilesync.domain.UserProfileSyncException;
 import uk.gov.hmcts.reform.profilesync.repository.SyncJobRepository;
 import uk.gov.hmcts.reform.profilesync.service.ProfileSyncService;
 import uk.gov.hmcts.reform.profilesync.service.ProfileUpdateService;
@@ -74,6 +75,7 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
         return tokenGenerator.generate();
     }
 
+
     public List<IdamClient.User> getSyncFeed(String bearerToken, String searchQuery) {
         log.info("Inside getSyncFeed");
 
@@ -110,7 +112,7 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
         return updatedUserList;
     }
 
-    public void updateUserProfileFeed(String searchQuery) throws Exception {
+    public void updateUserProfileFeed(String searchQuery) throws UserProfileSyncException {
         log.info("Inside updateUserProfileFeed");
         String bearerToken = BEARER + getBearerToken();
         //getSyncFeed(bearerToken, searchQuery);

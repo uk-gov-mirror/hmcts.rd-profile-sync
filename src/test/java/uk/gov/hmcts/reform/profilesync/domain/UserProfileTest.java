@@ -29,26 +29,6 @@ public class UserProfileTest {
         assertThat(sut.getLastName()).isEqualTo(MockDataProvider.lastName);
     }
 
-    @Test
-    public void testIsEmailCommsConsent() {
-        assertThat(sut.isEmailCommsConsent()).isEqualTo(MockDataProvider.emailCommsConsent);
-    }
-
-    @Test
-    public void testGetEmailCommsConsentTs() {
-        assertThat(sut.getEmailCommsConsentTs()).isEqualTo(MockDataProvider.currentTime);
-    }
-
-    @Test
-    public void testIsPostalCommsConsent() {
-        assertThat(sut.isPostalCommsConsent()).isEqualTo(MockDataProvider.postalCommsConsent);
-    }
-
-    @Test
-    public void testGetPostalCommsConsentTs() {
-        assertThat(sut.getPostalCommsConsentTs()).isEqualTo(MockDataProvider.currentTime);
-    }
-
     //@Test
     /*public void testGetStatus() {
         assertThat(sut.getStatus()).isEqualTo(MockDataProvider.status);
@@ -59,21 +39,5 @@ public class UserProfileTest {
         assertThat(sut.getIdamRegistrationResponse()).isEqualTo(MockDataProvider.idamRegistrationResponse);
     }
 
-    @Test
-    public void testGetCreated() {
-        assertThat(sut.getCreated()).isEqualTo(MockDataProvider.currentTime);
-    }
 
-    @Test
-    public void testGetLastUpdated() {
-        assertThat(sut.getLastUpdated()).isEqualTo(MockDataProvider.currentTime);
-    }
-
-    @Test
-    public void builder() {
-        long expectId = 1222L;
-        UserProfile userProfile = UserProfile.builder().id(1222L).build();
-
-        assertThat(userProfile.getId()).isEqualTo(expectId);
-    }
 }

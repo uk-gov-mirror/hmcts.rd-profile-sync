@@ -8,17 +8,14 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.profilesync.domain.Source;
 import uk.gov.hmcts.reform.profilesync.domain.SyncJobAudit;
+import uk.gov.hmcts.reform.profilesync.domain.UserProfileSyncException;
 import uk.gov.hmcts.reform.profilesync.repository.SyncJobRepository;
 import uk.gov.hmcts.reform.profilesync.service.ProfileSyncService;
 
-@ConfigurationProperties(prefix = "idam.sync")
-@Configuration
 @Component
 @Slf4j
 public class UserProfileSyncJobScheduler {
@@ -54,10 +51,12 @@ public class UserProfileSyncJobScheduler {
             profileSyncService.updateUserProfileFeed(searchQuery);
             SyncJobAudit syncJobAudit = new SyncJobAudit(201, "success", Source.SYNC);
             syncJobRepository.save(syncJobAudit);
-        } catch (Exception e) {
+
+        } catch (UserProfileSyncException e) {
+            log.error("Sync Batch Job Failed::",e);
             SyncJobAudit syncJobAudit = new SyncJobAudit(500, "fail", Source.SYNC);
             syncJobRepository.save(syncJobAudit);
-            log.error("Sync Batch Job Failed::",e);
+
         }
     }
 

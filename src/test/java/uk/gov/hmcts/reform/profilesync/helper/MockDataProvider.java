@@ -48,14 +48,8 @@ public class MockDataProvider {
                 .email(email)
                 .firstName(firstName)
                 .lastName(lastName)
-                .emailCommsConsent(emailCommsConsent)
-                .emailCommsConsentTs(currentTime)
-                .postalCommsConsent(postalCommsConsent)
-                .postalCommsConsentTs(currentTime)
                 // .status(status)
                 .idamRegistrationResponse(idamRegistrationResponse)
-                .created(currentTime)
-                .lastUpdated(currentTime)
                 .build();
     }
 

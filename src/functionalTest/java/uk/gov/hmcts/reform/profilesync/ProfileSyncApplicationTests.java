@@ -15,29 +15,41 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.lang.RandomStringUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.profilesync.client.FuncTestRequestHandler;
-
+import uk.gov.hmcts.reform.profilesync.client.IdamClient;
 
 @Slf4j
-@RunWith(SpringIntegrationSerenityRunner.class)
 @ActiveProfiles("functional")
+@RunWith(SpringIntegrationSerenityRunner.class)
+@Ignore
 public class ProfileSyncApplicationTests extends FuncTestRequestHandler {
+
+    IdamClient idamClient;
 
     @Test
     public void testIdamProfileSyncInUserProfile() {
 
-        createUserProfile();
+        idamClient = new IdamClient(testConfig);
+        String email = idamClient.createUser("prd-admin");
+        log.info("email::" + email);
+        Map<String,Object> userCreationResponse  = createUserProfile(email);
+        log.info("userCreationResponse::" + userCreationResponse);
+        Map<String,Object> userResponse = getUserProfileByEmail(email);
+        log.info("UserResponse::" + userResponse);
+        syncJobScheduler.updateIdamDataWithUserProfile();
+
 
     }
 
-    private void createUserProfile() {
+    private Map<String,Object> createUserProfile(String email) {
 
         Map<String, Object> tokenParams = new HashMap<>();
-        tokenParams.put("email", buildRandomEmail());
+        tokenParams.put("email", email);
         tokenParams.put("firstName",  RandomStringUtils.randomAlphabetic(20));
         tokenParams.put("lastName",  RandomStringUtils.randomAlphabetic(20));
         tokenParams.put("languagePreference", "EN");
@@ -53,10 +65,31 @@ public class ProfileSyncApplicationTests extends FuncTestRequestHandler {
                 .baseUri("http://rd-user-profile-api-preview.service.core-compute-preview.internal")
                 .header(CONTENT_TYPE, APPLICATION_JSON_UTF8_VALUE)
                 .header("ServiceAuthorization",getS2sToken())
+                .header("Authorization",idamClient.getBearerToken())
                 .body(tokenParams)
                 .post("/v1/userprofile")
                 .andReturn();
+
         assertThat(response).isNotNull();
+        return response.body().as(Map.class);
+    }
+
+    private Map<String,Object> getUserProfileByEmail(String email) {
+
+        Response response = RestAssured
+                .given()
+                .relaxedHTTPSValidation()
+                .baseUri("http://rd-user-profile-api-preview.service.core-compute-preview.internal")
+                .header(CONTENT_TYPE, APPLICATION_JSON_UTF8_VALUE)
+                .header("ServiceAuthorization",getS2sToken())
+                .header("Authorization",idamClient.getBearerToken())
+                .get("/v1/userprofile?email=" + email)
+                .andReturn();
+        assertThat(response).isNotNull();
+        log.info("S2S TOKEN::" + getS2sToken());
+        log.info("Bearer TOKEN::" + idamClient.getBearerToken());
+
+        return response.body().as(Map.class);
     }
 
     private static String buildRandomEmail() {
