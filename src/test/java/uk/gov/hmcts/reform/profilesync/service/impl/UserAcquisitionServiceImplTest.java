@@ -5,16 +5,21 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import feign.Request;
 import feign.Response;
 
 import java.io.IOException;
-import java.io.Reader;
+import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.Test;
 import org.mockito.Mockito;
 import uk.gov.hmcts.reform.profilesync.client.UserProfileClient;
 import uk.gov.hmcts.reform.profilesync.domain.GetUserProfileResponse;
+import uk.gov.hmcts.reform.profilesync.domain.IdamStatus;
+import uk.gov.hmcts.reform.profilesync.domain.UserProfile;
 import uk.gov.hmcts.reform.profilesync.helper.MockDataProvider;
 import uk.gov.hmcts.reform.profilesync.service.UserAcquisitionService;
 
@@ -31,16 +36,19 @@ public class UserAcquisitionServiceImplTest {
         String s2sToken = "ey0f90sjaf90adjf90asjfsdljfklsf0sfj9s0d";
         String id = MockDataProvider.idamId.toString();
 
-        Response responseMock = Mockito.mock(Response.class);
-        Reader readerMock = Mockito.mock(Reader.class);
-        final ObjectMapper json = new ObjectMapper();// TODO need to inject this in service code
-        Response.Body bodyMock = Mockito.mock(Response.Body.class);
+        UserProfile profile = UserProfile.builder().idamId(UUID.randomUUID())
+                                .email("email@org.com")
+                                .firstName("firstName")
+                                .lastName("lastName")
+                                .idamStatus(IdamStatus.ACTIVE.name()).build();
 
-        when(responseMock.status()).thenReturn(statusCode);
-        when(responseMock.body()).thenReturn(bodyMock);
-        when(responseMock.body().asReader()).thenReturn(readerMock);
-        when(userProfileClientMock.findUser(any(), any(), any())).thenReturn(responseMock);
+        GetUserProfileResponse userProfileResponse = new GetUserProfileResponse(profile);
 
+        ObjectMapper mapper = new ObjectMapper();
+
+        String body = mapper.writeValueAsString(userProfileResponse);
+
+        when(userProfileClientMock.findUser(any(), any(), any())).thenReturn(Response.builder().request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(), Request.Body.empty())).body(body, Charset.defaultCharset()).status(200).build());
         Optional<GetUserProfileResponse> getUserProfileResponse = sut.findUser(bearerToken, s2sToken, id);
 
         assertThat(getUserProfileResponse).isNotNull();
