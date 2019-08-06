@@ -11,11 +11,11 @@ import lombok.Setter;
 public class UserProfileResponse {
 
     private UUID idamId;
-    private Integer iDamRegistrationResponse;
+    private Integer idamRegistrationResponse;
 
     public UserProfileResponse(UserProfile userProfile) {
 
         this.idamId = userProfile.getIdamId();
-        this.iDamRegistrationResponse = userProfile.getIdamRegistrationResponse();
+        this.idamRegistrationResponse = userProfile.getIdamRegistrationResponse();
     }
 }

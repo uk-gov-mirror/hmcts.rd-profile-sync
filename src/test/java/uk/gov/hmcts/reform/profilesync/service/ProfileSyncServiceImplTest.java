@@ -7,6 +7,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import feign.Response;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -124,26 +126,29 @@ public class ProfileSyncServiceImplTest {
     }
 
     @Test
-    public void testUpdateUserProfileFeed() {
+    public void testUpdateUserProfileFeed()throws Exception {
         final String bearerToken = "Bearer eyJ0eXAiOiJKV1QiLCJ6aXAiOiJOT05FIiwia2lkIjoicDBZL0lpN0txdS9uZndIK0RvdmZVMEszbHRJPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJwcmF2ZWVuLnRob3R0ZW1wdWRpQGhtY3RzLm5ldCIsImF1dGhfbGV2ZWwiOjAsImF1ZGl0VHJhY2tpbmdJZCI6IjIxOWNiMjdkLTkwZmEtNGE3Yi05Yzk1LWRhNWRhMzI0MjJlNyIsImlzcyI6Imh0dHBzOi8vZm9yZ2Vyb2NrLWFtLnNlcnZpY2UuY29yZS1jb21wdXRlLWlkYW0tcHJldmlldy5pbnRlcm5hbDo4NDQzL29wZW5hbS9vYXV0aDIvaG1jdHMiLCJ0b2tlbk5hbWUiOiJhY2Nlc3NfdG9rZW4iLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiYXV0aEdyYW50SWQiOiJkYzFkM2NjNS05OWZhLTRhNDAtYWIxMC0zMzcxZjcwNjQ0YWMiLCJhdWQiOiJyZC1wcm9mZXNzaW9uYWwtYXBpIiwibmJmIjoxNTYzNTMyMDY4LCJncmFudF90eXBlIjoiYXV0aG9yaXphdGlvbl9jb2RlIiwic2NvcGUiOlsib3BlbmlkIiwicHJvZmlsZSIsInJvbGVzIiwiY3JlYXRlLXVzZXIiLCJtYW5hZ2UtdXNlciIsInNlYXJjaC11c2VyIl0sImF1dGhfdGltZSI6MTU2MzUzMjA0NzAwMCwicmVhbG0iOiIvaG1jdHMiLCJleHAiOjE1NjM1NjA4NjgsImlhdCI6MTU2MzUzMjA2OCwiZXhwaXJlc19pbiI6Mjg4MDAsImp0aSI6ImU3NjMyNzgwLWM1N2QtNDhjMC1iNmQ3LTZmM2M2MzIwMDExMiJ9.HmhKLluiDncAcHrZSvrgFxnagIFPVRXa9aSl8uymK3l91Ss94csZpDyUh5UQH0bzZtJjeNPAci5dEYgLuqeO9-ydhRA_tBhfbjS7kBlUmo6RHK492O5WE7goMhpsx-j6KoJ94-cNDgnbk0YyGYzPODS7FLx1HZgLH5_E7sIzT8-GXTMQOm7rwxFkcA0BZwgp45YYV1wvxRP6vCOpbY0Zrp8hx6fQdbpAste0BFOruOSXR9eLuqCCxX_wud7dv9FHF6wCBf_nZ6XkgVTZAHav0tWsLnfGMyEXwm5BJWKy3ctl8H8RQNPArA1PlhdkQBNYWk2BX_1zC7zFI_terWkqjQ";
         final String searchQuery = "lastModified:>now-24h";
         final String s2sToken = "ey0fffdf89s0f8s90ej0e";
-
+        int totalCount = 0;
+        int counter = 0;
+        int recordsPerPage = 20;
         Map<String, String> formParams = new HashMap<>();
         formParams.put("query", searchQuery);
-
+        formParams.put("page", String.valueOf(counter));
+        Response responseMock = Mockito.mock(Response.class);
         List<IdamClient.User> userData = new ArrayList<>();
 
-       // when(idamClientMock.getUserFeed(bearerToken, formParams)).thenReturn(userData);
+        when(idamClientMock.getUserFeed(bearerToken, formParams)).thenReturn(responseMock);
         when(tokenGeneratorMock.generate()).thenReturn(s2sToken);
 
         List<IdamClient.User> response = sut.getSyncFeed(bearerToken, searchQuery);
 
         assertThat(response).isNotNull();
 
-      //  sut.updateUserProfileFeed(searchQuery);
+        sut.updateUserProfileFeed(searchQuery);
 
-      //  verify(profileUpdateService, times(1)).updateUserProfile(eq(searchQuery), eq("Bearer " + MockDataProvider.clientAuthorization), eq(s2sToken), any());
+        verify(profileUpdateService, times(1)).updateUserProfile(eq(searchQuery), eq("Bearer " + MockDataProvider.clientAuthorization), eq(s2sToken), any());
     }
 
 

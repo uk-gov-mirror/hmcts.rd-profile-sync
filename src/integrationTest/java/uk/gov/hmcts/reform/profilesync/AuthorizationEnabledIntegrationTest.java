@@ -24,7 +24,7 @@ import uk.gov.hmcts.reform.profilesync.util.UserProfileSyncJobScheduler;
 
 @Configuration
 @TestPropertySource(properties = {"S2S_URL=http://127.0.0.1:8990","IDAM_URL:http://127.0.0.1:5000", "USER_PROFILE_URL:http://127.0.0.1:8091"})
-public abstract class AuthorizationEnabledIntegrationTest  extends SpringBootIntegrationTest{
+public abstract class AuthorizationEnabledIntegrationTest  extends SpringBootIntegrationTest {
 
     @Autowired
     protected SyncJobRepository syncJobRepository;
@@ -33,13 +33,11 @@ public abstract class AuthorizationEnabledIntegrationTest  extends SpringBootInt
     protected UserProfileClient userProfileFeignClient;
 
     @Autowired
-    protected IdamClient iDamFeignClient;
+    protected IdamClient idamFeignClient;
 
     @Autowired
-    UserProfileSyncJobScheduler profileSyncJobScheduler ;
+    UserProfileSyncJobScheduler profileSyncJobScheduler;
 
-    //@Autowired
-    protected ProfileSyncApplicationTest profileSyncApplicationTest;
 
     @Rule
     public WireMockRule s2sService = new WireMockRule(8990);
@@ -50,11 +48,6 @@ public abstract class AuthorizationEnabledIntegrationTest  extends SpringBootInt
     @Rule
     public WireMockRule userProfileService = new WireMockRule(8091);
 
-
-    @Before
-    public void setUpClient() {
-        profileSyncApplicationTest = new ProfileSyncApplicationTest();
-    }
 
     @Before
     public void setupS2sAndIdamStubs() throws Exception {
@@ -103,8 +96,6 @@ public abstract class AuthorizationEnabledIntegrationTest  extends SpringBootInt
                                 + "}]")));
 
     }
-
-
 
     @Before
     public void userProfileGetUserWireMock() {

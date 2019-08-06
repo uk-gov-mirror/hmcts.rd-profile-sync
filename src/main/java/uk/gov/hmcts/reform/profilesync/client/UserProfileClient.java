@@ -3,6 +3,8 @@ package uk.gov.hmcts.reform.profilesync.client;
 import feign.Headers;
 import feign.Response;
 
+import javax.validation.Valid;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,8 +16,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import uk.gov.hmcts.reform.profilesync.domain.UserProfile;
-
-import javax.validation.Valid;
 
 @FeignClient(name = "userProfileClient", url = "${userprofile.api.url}")
 public interface UserProfileClient {

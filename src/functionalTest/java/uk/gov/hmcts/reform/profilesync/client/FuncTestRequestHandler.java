@@ -1,27 +1,26 @@
 package uk.gov.hmcts.reform.profilesync.client;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
+import io.restassured.RestAssured;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.restassured.response.Response;
-import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import net.serenitybdd.rest.SerenityRest;
+import org.junit.Before;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import uk.gov.hmcts.reform.profilesync.config.TestConfigProperties;
 
 @Slf4j
-@Service
+@RunWith(SpringIntegrationSerenityRunner.class)
+@ContextConfiguration(classes = {TestConfigProperties.class})
+@TestPropertySource("classpath:application-functional.yaml")
 public class FuncTestRequestHandler {
 
     @Autowired
     protected TestConfigProperties testConfig;
-
-    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${targetInstance}")
     protected String baseUrl;
@@ -32,24 +31,20 @@ public class FuncTestRequestHandler {
     @Value("${s2s.auth.url}")
     protected String s2sBaseUrl;
 
+    @Value("${idam.api.url}")
+    protected String idamApiUrl;
+
     @Value("${s2s.auth.microservice:rd_user_profile_api}")
     protected String s2sMicroservice;
 
     public static final String BEARER = "Bearer ";
 
-    private RequestSpecification withAuthenticatedRequest() {
-        String s2sToken = getS2sToken();
-        String bearerToken = getBearerToken();
 
-        log.info("S2S Token : {}, Bearer Token : {}", s2sToken, bearerToken);
-
-        return SerenityRest.given()
-                .relaxedHTTPSValidation()
-                .baseUri(baseUrl)
-                .header("ServiceAuthorization", BEARER + s2sToken)
-                .header("Authorization", BEARER + bearerToken)
-                .header("Content-Type", APPLICATION_JSON_UTF8_VALUE)
-                .header("Accepts", APPLICATION_JSON_UTF8_VALUE);
+    @Before
+    public void setupProxy() {
+        //TO enable for local testing
+        RestAssured.proxy("proxyout.reform.hmcts.net",8080);
+        SerenityRest.proxy("proxyout.reform.hmcts.net", 8080);
     }
 
     public String getBearerToken() {

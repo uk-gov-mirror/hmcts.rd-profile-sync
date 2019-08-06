@@ -15,7 +15,8 @@ import uk.gov.hmcts.reform.profilesync.util.UserProfileSyncJobScheduler;
 public class RunProfileSyncJobTest extends AuthorizationEnabledIntegrationTest {
 
     @Autowired
-    UserProfileSyncJobScheduler profileSyncJobScheduler ;
+    UserProfileSyncJobScheduler profileSyncJobScheduler;
+
     @SuppressWarnings("unchecked")
     @Test
     public void persists_and_update_user_details_and_status_with_idam_details() {

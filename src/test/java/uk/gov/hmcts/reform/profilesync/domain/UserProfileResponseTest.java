@@ -10,15 +10,14 @@ public class UserProfileResponseTest {
     private UserProfile user = MockDataProvider.getUserProfile();
     private UserProfileResponse userProfileResponse = new UserProfileResponse(user);
 
-
     @Test
     public void testGetIdamId() {
         assertThat(userProfileResponse.getIdamId()).isEqualTo(user.getIdamId());
     }
 
-   /* @Test
+    @Test
     public void testGetIdamRegistrationResponse() {
         assertThat(userProfileResponse.getIdamRegistrationResponse()).isEqualTo(user.getIdamRegistrationResponse());
-    }*/
+    }
 
 }

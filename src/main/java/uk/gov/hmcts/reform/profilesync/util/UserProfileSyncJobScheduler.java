@@ -61,21 +61,18 @@ public class UserProfileSyncJobScheduler {
         }
     }
 
-    /**
-     *
-     * @param lastSuccessBatch
-     * @return
-     */
     private String getLastBatchFailureTimeInHours(LocalDateTime lastSuccessBatch) {
 
         long hoursDiff = 1;
         Duration duration = Duration.between(LocalDateTime.now(), lastSuccessBatch);
         long minutesDiff = Math.abs(duration.toMinutes());
         if (minutesDiff > 60) {
-            hoursDiff = minutesDiff/60;
-            if (minutesDiff%60 > 0) {
+            hoursDiff = minutesDiff / 60;
+            if (minutesDiff % 60 > 0) {
+
                 hoursDiff = hoursDiff + 1;
             }
+
             log.info("Diff of Hours::" + hoursDiff);
         }
         log.info("Since Last Batch failure in sync job in hours:: " + hoursDiff);

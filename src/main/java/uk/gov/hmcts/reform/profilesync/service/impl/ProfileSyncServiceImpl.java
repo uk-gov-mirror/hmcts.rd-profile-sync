@@ -8,10 +8,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.http.ResponseEntity;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
@@ -79,7 +80,7 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
         Map<String, String> formParams = new HashMap<>();
         formParams.put("query", searchQuery);
 
-        List <IdamClient.User> updatedUserList = new ArrayList<>();
+        List<IdamClient.User> updatedUserList = new ArrayList<>();
         int totalCount = 0;
         int counter = 0;
         int recordsPerPage = 20;
@@ -90,7 +91,7 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
             ResponseEntity responseEntity = JsonFeignResponseHelper.toResponseEntity(response, new TypeReference<List<IdamClient.User>>() { });
             Class clazz = response.status() > 300 ? ErrorResponse.class : IdamClient.User.class;
 
-            if ( response.status() < 300 && responseEntity.getStatusCode().is2xxSuccessful()) {
+            if (response.status() < 300 && responseEntity.getStatusCode().is2xxSuccessful()) {
 
                 List<IdamClient.User> users =  (List<IdamClient.User>) responseEntity.getBody();
                 log.info("User ::" + users);
@@ -102,7 +103,7 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
                     //There is No header.
                 }
             }
-            counter ++;
+            counter++;
 
         } while (totalCount > 0 && (recordsPerPage * counter) < totalCount);
 

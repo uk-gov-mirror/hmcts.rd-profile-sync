@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.profilesync.service.impl;
 
-import feign.FeignException;
 import feign.Response;
 
 import java.util.HashMap;
@@ -50,10 +49,10 @@ public class ProfileUpdateServiceImpl implements ProfileUpdateService {
                         .email(user.getEmail())
                         .firstName(user.getForename())
                         .lastName(user.getSurname())
-                        .idamStatus(iDamStatusResolver().get(status) != null ? iDamStatusResolver().get(status).name() : "PENDING")
+                        .idamStatus(idamStatusResolver().get(status) != null ? idamStatusResolver().get(status).name() : "PENDING")
                         .build();
 
-                try{
+                try {
 
                     syncUser(bearerToken,s2sToken,user.getId().toString(),updatedUserProfile);
 
@@ -86,13 +85,13 @@ public class ProfileUpdateServiceImpl implements ProfileUpdateService {
 
     }
 
-    private void saveSyncJobAudit(Integer iDamResponse,String message) {
+    private void saveSyncJobAudit(Integer idamResponse,String message) {
 
-        SyncJobAudit syncJobAudit = new SyncJobAudit(iDamResponse, message, Source.SYNC);
+        SyncJobAudit syncJobAudit = new SyncJobAudit(idamResponse, message, Source.SYNC);
         syncJobRepository.save(syncJobAudit);
     }
 
-    public Map<Map<String, Boolean>, IdamStatus> iDamStatusResolver() {
+    public Map<Map<String, Boolean>, IdamStatus> idamStatusResolver() {
 
         Map<Map<String, Boolean>, IdamStatus> idamStatusMap = new HashMap<Map<String, Boolean>, IdamStatus>();
         idamStatusMap.put(addRule(false,true, false), IdamStatus.PENDING);

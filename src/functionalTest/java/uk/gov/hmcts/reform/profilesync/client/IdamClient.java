@@ -8,6 +8,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -15,8 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import io.restassured.RestAssured;
-import io.restassured.response.Response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

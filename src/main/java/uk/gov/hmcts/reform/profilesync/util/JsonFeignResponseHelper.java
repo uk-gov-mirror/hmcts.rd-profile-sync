@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.profilesync.util;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import feign.Response;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,7 +11,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
-import org.checkerframework.checker.nullness.Opt;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
@@ -18,6 +19,7 @@ import org.springframework.util.MultiValueMap;
 
 
 @SuppressWarnings("unchecked")
+@Slf4j
 public class JsonFeignResponseHelper {
     private static final ObjectMapper json = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -47,8 +49,10 @@ public class JsonFeignResponseHelper {
 
         try {
             payload = Optional.of(json.readValue(response.body().asReader(), reference));
-        } catch (IOException ex){
-            System.out.println(ex);
+
+        } catch (IOException ex) {
+
+            log.error("error while reading the body");
         }
 
         return new ResponseEntity(

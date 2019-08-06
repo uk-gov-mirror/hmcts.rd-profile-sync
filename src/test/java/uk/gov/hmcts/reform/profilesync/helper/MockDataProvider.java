@@ -52,7 +52,7 @@ public class MockDataProvider {
                 .emailCommsConsentTs(currentTime)
                 .postalCommsConsent(postalCommsConsent)
                 .postalCommsConsentTs(currentTime)
-               // .status(status)
+                // .status(status)
                 .idamRegistrationResponse(idamRegistrationResponse)
                 .created(currentTime)
                 .lastUpdated(currentTime)
