@@ -1,0 +1,81 @@
+server:
+  port: 8093
+
+management:
+  endpoints:
+    jmx:
+      exposure:
+        include: 'health'
+    web:
+      base-path: "/"
+  endpoint:
+    health:
+      show-details: "always"
+
+spring:
+  application:
+    name: RD Profile SYNC API
+  jackson.date-format: yyyy-MM-dd
+  flyway.enabled: true
+
+  ### database configuration
+  datasource:
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5428}/${POSTGRES_NAME:dbsyncdata}${POSTGRES_CONNECTION_OPTIONS:?}
+    username: ${POSTGRES_USERNAME:dbsyncdata}
+    password: ${POSTGRES_PASSWORD:dbsyncdata}
+    properties:
+      charSet: UTF-8
+    tomcat:
+      max-active: 10
+      max-idle: 10
+      min-idle: 2
+      max-wait: 10000
+      test-on-borrow: true
+      test-on-connect: true
+      test-on-idle: true
+      validation-query: "SELECT 1"
+      time-between-eviction-runs-millis: 10000
+      test-while-idle: true
+      test-on-return: true
+      remove-abandoned: true
+      remove-abandoned-timeout: 60
+      log-abandoned: true
+      abandon-when-percentage-full: 0
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+security:
+  anonymousPaths:
+    - "/"
+    - "/health"
+    - "/health/liveness"
+    - "/actuator/**"
+    - "/loggers/**"
+
+  authorisedServices:
+    - rd_user_profile_api
+
+### dependency configuration
+auth.provider.service.client.baseUrl: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
+auth.idam.client.detailsUri: "/details"
+auth.idam.client.baseUrl: ${IDAM_URL:https://idam-api.preview.platform.hmcts.net}
+idam:
+  api:
+    url: ${IDAM_URL:https://idam-api.preview.platform.hmcts.net}
+    client-id: ${OAUTH2_CLIENT_ID:rd-professional-api}
+    redirect-uri: ${OAUTH2_REDIRECT_URI:https://rd-professional-api-preview.service.core-compute-preview.internal/oauth2redirect}
+    authorization: ${OAUTH2_AUTH:bWFyay5udXRoYWxhcGF0aUBobWN0cy5uZXQ6UGE1NXdvcmQxMQ==}
+    client-authorization: ${OAUTH2_CLIENT_AUTH:cmQtcHJvZmVzc2lvbmFsLWFwaTpjYzVmMmE2LTk2OTAtMTFlOS1iYzQyLTUyNmFmNzc2NGY2NA==}
+
+  s2s-auth:
+    totp_secret: ${S2S_SECRET:K6KA6PRLRFWQLSD6}
+    microservice: rd_professional_api
+    url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
+
+userprofile:
+  api:
+    url: ${USER_PROFILE_URL:http://rd-user-profile-api-preview.service.core-compute-preview.internal}

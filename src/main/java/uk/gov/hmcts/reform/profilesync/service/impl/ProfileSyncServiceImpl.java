@@ -1,38 +1,51 @@
 package uk.gov.hmcts.reform.profilesync.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import feign.Response;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
 import uk.gov.hmcts.reform.profilesync.config.TokenConfigProperties;
+import uk.gov.hmcts.reform.profilesync.domain.ErrorResponse;
+import uk.gov.hmcts.reform.profilesync.domain.UserProfileSyncException;
+import uk.gov.hmcts.reform.profilesync.repository.SyncJobRepository;
 import uk.gov.hmcts.reform.profilesync.service.ProfileSyncService;
 import uk.gov.hmcts.reform.profilesync.service.ProfileUpdateService;
-
-import java.util.*;
+import uk.gov.hmcts.reform.profilesync.util.JsonFeignResponseHelper;
 
 @Service
 @AllArgsConstructor
 @Slf4j
+@SuppressWarnings("unchecked")
 public class ProfileSyncServiceImpl implements ProfileSyncService {
 
     @Autowired
-    private final IdamClient idamClient;
+    protected final IdamClient idamClient;
 
     @Autowired
-    private final AuthTokenGenerator tokenGenerator;
+    protected final AuthTokenGenerator tokenGenerator;
 
     @Autowired
-    private final ProfileUpdateService profileUpdateService;
+    protected final ProfileUpdateService profileUpdateService;
 
     @Autowired
     private final TokenConfigProperties props;
 
-    public static final String BASIC = "Basic ";
-    public static final String BEARER = "Bearer ";
+    @Autowired
+    private final SyncJobRepository syncJobRepository;
 
-    public String authorize(){
+    public String authorize() {
 
         Map<String, String> formParams = new HashMap<>();
         formParams.put("client_id", props.getClientId());
@@ -58,23 +71,51 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
         return response.getAccessToken();
     }
 
-    public String getS2sToken(){
+    public String getS2sToken() {
         return tokenGenerator.generate();
     }
 
+
     public List<IdamClient.User> getSyncFeed(String bearerToken, String searchQuery) {
+        log.info("Inside getSyncFeed");
 
         Map<String, String> formParams = new HashMap<>();
         formParams.put("query", searchQuery);
-        List<IdamClient.User> response = idamClient.getUserFeed(bearerToken, formParams);
-        return response;
+
+        List<IdamClient.User> updatedUserList = new ArrayList<>();
+        int totalCount = 0;
+        int counter = 0;
+        int recordsPerPage = 20;
+
+        do {
+            formParams.put("page", String.valueOf(counter));
+            Response response  = idamClient.getUserFeed(bearerToken, formParams);
+            ResponseEntity responseEntity = JsonFeignResponseHelper.toResponseEntity(response, new TypeReference<List<IdamClient.User>>() { });
+            Class clazz = response.status() > 300 ? ErrorResponse.class : IdamClient.User.class;
+
+            if (response.status() < 300 && responseEntity.getStatusCode().is2xxSuccessful()) {
+
+                List<IdamClient.User> users =  (List<IdamClient.User>) responseEntity.getBody();
+                log.info("User ::" + users);
+                updatedUserList.addAll(users);
+
+                try {
+                    totalCount = Integer.parseInt(responseEntity.getHeaders().get("X-Total-Count").get(0));
+                } catch (Exception ex) {
+                    //There is No header.
+                }
+            }
+            counter++;
+
+        } while (totalCount > 0 && (recordsPerPage * counter) < totalCount);
+
+        return updatedUserList;
     }
 
-    public void updateUserProfileFeed(String searchQuery){
+    public void updateUserProfileFeed(String searchQuery) throws UserProfileSyncException {
+        log.info("Inside updateUserProfileFeed");
         String bearerToken = BEARER + getBearerToken();
-        String s2sToken = getS2sToken();
-        profileUpdateService.updateUserProfile(searchQuery, bearerToken, s2sToken, getSyncFeed(bearerToken, searchQuery));
+        profileUpdateService.updateUserProfile(searchQuery, bearerToken, getS2sToken(), getSyncFeed(bearerToken, searchQuery));
+        log.info("After updateUserProfileFeed");
     }
-
-
 }

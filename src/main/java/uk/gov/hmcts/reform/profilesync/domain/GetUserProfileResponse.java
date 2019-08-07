@@ -6,7 +6,6 @@ import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-
 @Getter
 @NoArgsConstructor
 public class GetUserProfileResponse {
@@ -24,7 +23,7 @@ public class GetUserProfileResponse {
         this.email = userProfile.getEmail();
         this.firstName = userProfile.getFirstName();
         this.lastName = userProfile.getLastName();
-        this.idamStatus = userProfile.getStatus();
+        this.idamStatus = userProfile.getIdamStatus();
     }
 
 }

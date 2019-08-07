@@ -1,8 +1,6 @@
 package uk.gov.hmcts.reform.profilesync.helper;
 
-import uk.gov.hmcts.reform.profilesync.client.IdamClient;
-import uk.gov.hmcts.reform.profilesync.domain.GetUserProfileResponse;
-import uk.gov.hmcts.reform.profilesync.domain.UserProfile;
+import static java.time.LocalDateTime.now;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,7 +8,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static java.time.LocalDateTime.now;
+import uk.gov.hmcts.reform.profilesync.client.IdamClient;
+import uk.gov.hmcts.reform.profilesync.domain.GetUserProfileResponse;
+import uk.gov.hmcts.reform.profilesync.domain.UserProfile;
 
 public class MockDataProvider {
 
@@ -41,33 +41,27 @@ public class MockDataProvider {
     public static final String authorization = "eyjkl902390jf0ksldj03903.dffkljfke932rjf032j02f3";
     public static final String clientAuthorization = "eyjfddsfsdfsdfdj03903.dffkljfke932rjf032j02f3--fskfljdskls-fdkldskll";
 
-    private MockDataProvider(){
+    private MockDataProvider() {
 
         userProfile = UserProfile.builder()
                 .idamId(idamId)
                 .email(email)
                 .firstName(firstName)
                 .lastName(lastName)
-                .emailCommsConsent(emailCommsConsent)
-                .emailCommsConsentTs(currentTime)
-                .postalCommsConsent(postalCommsConsent)
-                .postalCommsConsentTs(currentTime)
-                .status(status)
+                .idamStatus(status)
                 .idamRegistrationResponse(idamRegistrationResponse)
-                .created(currentTime)
-                .lastUpdated(currentTime)
                 .build();
     }
 
-    public static UserProfile getUserProfile(){
-        if(userProfile == null) {
+    public static UserProfile getUserProfile() {
+        if (userProfile == null) {
             userProfile = new MockDataProvider().userProfile;//NB You will break the tests if this gets removed
         }
         return userProfile;
     }
 
     public static IdamClient.User getIdamUser() {
-        if(idamUser == null) {
+        if (idamUser == null) {
             idamUser = new IdamClient.User();
             idamUser.setActive(true);
             idamUser.setEmail(email);
@@ -83,7 +77,7 @@ public class MockDataProvider {
     }
 
     public static GetUserProfileResponse getGetUserProfileResponse() {
-        if(getUserProfileResponse == null) {
+        if (getUserProfileResponse == null) {
             getUserProfileResponse = new GetUserProfileResponse(getUserProfile());
         }
         return getUserProfileResponse;

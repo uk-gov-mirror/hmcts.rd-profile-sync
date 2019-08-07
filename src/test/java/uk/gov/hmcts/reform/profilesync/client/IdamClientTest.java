@@ -1,12 +1,10 @@
 package uk.gov.hmcts.reform.profilesync.client;
 
-import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.Test;
 
 public class IdamClientTest {
-
 
     @Test
     public void testAuthenticateUserResponse() {

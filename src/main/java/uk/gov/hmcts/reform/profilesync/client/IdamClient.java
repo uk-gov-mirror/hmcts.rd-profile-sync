@@ -1,17 +1,23 @@
 package uk.gov.hmcts.reform.profilesync.client;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-import feign.*;
-import lombok.Data;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.*;
+
+import feign.Headers;
+import feign.Response;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@FeignClient(name = "idamClient", url="${idam.api.url}")
+import lombok.Data;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+
+
+@FeignClient(name = "idamClient", url = "${auth.idam.client.baseUrl}")
 public interface IdamClient {
 
     @PostMapping(value = "/oauth2/authorize", consumes = {"application/x-www-form-urlencoded"})
@@ -24,8 +30,7 @@ public interface IdamClient {
 
     @GetMapping(value = "/api/v1/users", consumes = {"application/x-www-form-urlencoded"})
     @Headers("authorization: {authorization}")
-    public List<User> getUserFeed(@RequestHeader("authorization") String authorization, @RequestParam  Map<String, String> params);
-
+    public Response getUserFeed(@RequestHeader("authorization") String authorization, @RequestParam  Map<String, String> params);
 
     @Data
     class AuthenticateUserResponse {
@@ -38,7 +43,6 @@ public interface IdamClient {
         @JsonProperty("access_token")
         private String accessToken;
     }
-
 
     @Data
     class User {
@@ -69,5 +73,4 @@ public interface IdamClient {
         @JsonProperty("surname")
         private String surname;
     }
-
 }

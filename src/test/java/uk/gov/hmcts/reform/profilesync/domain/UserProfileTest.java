@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.profilesync.domain;
 
-import org.junit.Test;
-import uk.gov.hmcts.reform.profilesync.helper.MockDataProvider;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.UUID;
+import org.junit.Test;
+import uk.gov.hmcts.reform.profilesync.helper.MockDataProvider;
 
 public class UserProfileTest {
 
@@ -31,28 +31,8 @@ public class UserProfileTest {
     }
 
     @Test
-    public void testIsEmailCommsConsent() {
-        assertThat(sut.isEmailCommsConsent()).isEqualTo(MockDataProvider.emailCommsConsent);
-    }
-
-    @Test
-    public void testGetEmailCommsConsentTs() {
-        assertThat(sut.getEmailCommsConsentTs()).isEqualTo(MockDataProvider.currentTime);
-    }
-
-    @Test
-    public void testIsPostalCommsConsent() {
-        assertThat(sut.isPostalCommsConsent()).isEqualTo(MockDataProvider.postalCommsConsent);
-    }
-
-    @Test
-    public void testGetPostalCommsConsentTs() {
-        assertThat(sut.getPostalCommsConsentTs()).isEqualTo(MockDataProvider.currentTime);
-    }
-
-    @Test
     public void testGetStatus() {
-        assertThat(sut.getStatus()).isEqualTo(MockDataProvider.status);
+        assertThat(sut.getIdamStatus()).isEqualTo(MockDataProvider.status);
     }
 
     @Test
@@ -61,20 +41,15 @@ public class UserProfileTest {
     }
 
     @Test
-    public void testGetCreated() {
-        assertThat(sut.getCreated()).isEqualTo(MockDataProvider.currentTime);
+    public void testSetGetValues() {
+
+        UserProfile profile = UserProfile.builder().idamId(UUID.randomUUID())
+                .email("email@org.com")
+                .firstName("firstName")
+                .lastName("lastName")
+                .idamStatus(IdamStatus.ACTIVE.name()).build();
+        assertThat(profile.getIdamStatus()).isEqualTo(IdamStatus.ACTIVE.name());
     }
 
-    @Test
-    public void testGetLastUpdated() {
-        assertThat(sut.getLastUpdated()).isEqualTo(MockDataProvider.currentTime);
-    }
 
-    @Test
-    public void builder() {
-        long expectId = 1222L;
-        UserProfile userProfile = UserProfile.builder().id(1222L).build();
-
-        assertThat(userProfile.getId()).isEqualTo(expectId);
-    }
 }
