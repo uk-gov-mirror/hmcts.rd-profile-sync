@@ -143,7 +143,7 @@ pitest {
 			'uk.gov.hmcts.reform.profilesync.ProfileSyncApplication',
 			'uk.gov.hmcts.reform.profilesync.config.*',
 			'uk.gov.hmcts.reform.profilesync.client.*',
-			'uk.gov.hmcts.reform.profilesync.controller.*'
+			'uk.gov.hmcts.reform.profilesync.util.UserProfileSyncJobScheduler'
 	]
 	threads = 10
 	outputFormats = ['XML', 'HTML']
@@ -153,6 +153,23 @@ pitest {
 }
 //
 project.tasks['pitest'].group = "Verification"
+
+sonarqube {
+	properties {
+		property "sonar.projectName", "RD :: User Profile Sync api"
+		property "sonar.projectKey", "RDPROFILESYNCAPI"
+		property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/test.exec"
+		property "sonar.jacoco.itReportPath", "${project.buildDir}/jacoco/integration.exec"
+		property "sonar.pitest.mode", "reuseReport"
+		property "sonar.pitest.reportsDirectory", "build/reports/pitest"
+		property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/profilesync/configuration/**," +
+			    "src/main/java/uk/gov/hmcts/reform/profilesync/ProfileSyncApplication.java"
+		
+				
+	}
+}
+
+
 
 task integration(type: Test, description: 'Runs the integration tests.', group: 'Verification') {
 	testClassesDirs = sourceSets.integrationTest.output.classesDirs

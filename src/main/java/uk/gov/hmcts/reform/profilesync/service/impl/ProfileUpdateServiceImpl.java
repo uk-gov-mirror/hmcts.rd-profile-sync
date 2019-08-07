@@ -59,8 +59,8 @@ public class ProfileUpdateServiceImpl implements ProfileUpdateService {
                     syncUser(bearerToken,s2sToken,user.getId().toString(),updatedUserProfile);
 
                 } catch (UserProfileSyncException e) {
+
                     log.error("User Not updated : Id - {}", user.getId().toString());
-                    e.printStackTrace();
                 }
                 log.info("User updated : Id - {}", user.getId().toString());
             }
@@ -102,7 +102,7 @@ public class ProfileUpdateServiceImpl implements ProfileUpdateService {
         return idamStatusMap;
     }
 
-    public static Map<String, Boolean> addRule(boolean activeFlag, boolean pendingFlag, boolean lockedFlag) {
+    public  Map<String, Boolean> addRule(boolean activeFlag, boolean pendingFlag, boolean lockedFlag) {
         Map<String, Boolean> pendingMapWithRules = new HashMap<>();
         pendingMapWithRules.put("ACTIVE", activeFlag);
         pendingMapWithRules.put("PENDING", pendingFlag);
