@@ -50,10 +50,6 @@ data "azurerm_key_vault_secret" "USER_PROFILE_URL" {
  key_vault_id = "${data.azurerm_key_vault.rd_key_vault.id}"
 }
 
-data "azurerm_key_vault_secret" "CCD_URL" {
- name = "CCD-URL"
- key_vault_id = "${data.azurerm_key_vault.rd_key_vault.id}"
-}
 
 data "azurerm_key_vault_secret" "s2s_secret" {
   name = "microservicekey-rd-professional-api"
@@ -159,8 +155,7 @@ module "rd_profile_sync" {
     S2S_SECRET = "${data.azurerm_key_vault_secret.s2s_secret.value}"
     IDAM_URL = "${data.azurerm_key_vault_secret.idam_url.value}"
     USER_PROFILE_URL = "${data.azurerm_key_vault_secret.USER_PROFILE_URL.value}"
-    CCD_URL = "${data.azurerm_key_vault_secret.CCD_URL.value}"
-
+    
     OAUTH2_REDIRECT_URI = "${data.azurerm_key_vault_secret.oauth2_redirect_uri.value}"
     OAUTH2_CLIENT_ID = "${data.azurerm_key_vault_secret.oauth2_client_id.value}"
     OAUTH2_CLIENT_SECRET = "${data.azurerm_key_vault_secret.oauth2_client_secret.value}"
