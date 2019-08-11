@@ -26,7 +26,7 @@ public class UserProfileSyncJobScheduler {
     @Autowired
     protected SyncJobRepository syncJobRepository;
 
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-DD HH:mm:ss");
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd hh:mm:ss");
 
 
     @Scheduled(cron = "${scheduler.config}")
@@ -34,11 +34,8 @@ public class UserProfileSyncJobScheduler {
 
         log.info("The time is now {}", dateFormat.format(new Date()));
 
-        String searchQuery = "roles:\"pui-case-manager\" OR roles:\"pui-user-manager\" OR roles:\"pui-organisation-manager\" OR roles:\"pui-finance-manager\" AND lastModified:>now-1h";
-
+        String searchQuery = "(roles:pui-case-manager OR roles:pui-user-manager OR roles:pui-organisation-manager OR roles:pui-finance-manager) AND lastModified:>now-1h";
         List<SyncJobAudit>  syncJobAudits = syncJobRepository.findAll();
-
-        log.info("List::SIZE" + syncJobAudits.size());
 
         if (null != syncJobRepository.findFirstByStatusOrderByAuditTsDesc("fail")) {
 
