@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.profilesync.util;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +28,6 @@ public class UserProfileSyncJobScheduler {
     public void updateIdamDataWithUserProfile() {
 
         String searchQuery = "(roles:pui-case-manager OR roles:pui-user-manager OR roles:pui-organisation-manager OR roles:pui-finance-manager) AND lastModified:>now-1h";
-        List<SyncJobAudit>  syncJobAudits = syncJobRepository.findAll();
 
         if (null != syncJobRepository.findFirstByStatusOrderByAuditTsDesc("fail")) {
 
