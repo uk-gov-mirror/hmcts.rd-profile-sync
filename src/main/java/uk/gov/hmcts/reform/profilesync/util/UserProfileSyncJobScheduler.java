@@ -29,7 +29,7 @@ public class UserProfileSyncJobScheduler {
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-DD HH:mm:ss");
 
 
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "${scheduler.config}")
     public void updateIdamDataWithUserProfile() {
 
         log.info("The time is now {}", dateFormat.format(new Date()));
@@ -42,6 +42,7 @@ public class UserProfileSyncJobScheduler {
 
         if (null != syncJobRepository.findFirstByStatusOrderByAuditTsDesc("fail")) {
 
+            log.info("The last batch failed time{}", dateFormat.format(new Date()));
             SyncJobAudit auditjob = syncJobRepository.findFirstByStatusOrderByAuditTsDesc("success");
             searchQuery =  searchQuery.replace("1",getLastBatchFailureTimeInHours(auditjob.getAuditTs()));
             log.info("searchQuery::",searchQuery);

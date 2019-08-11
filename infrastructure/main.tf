@@ -81,6 +81,11 @@ data "azurerm_key_vault_secret" "oauth2_auth" {
   key_vault_id = "${data.azurerm_key_vault.rd_key_vault.id}"
 }
 
+data "azurerm_key_vault_secret" "cron_schedule" {
+  name = "CRON-SCHEDULE"
+  key_vault_id = "${data.azurerm_key_vault.rd_key_vault.id}"
+}
+
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {
   name      = "${var.component}-POSTGRES-USER"
   value     = "${module.db-profile-sync-data.user_name}"
@@ -172,6 +177,7 @@ module "rd_profile_sync" {
 
     OAUTH2_AUTH = "${data.azurerm_key_vault_secret.oauth2_auth.value}"
     OAUTH2_CLIENT_AUTH = "${data.azurerm_key_vault_secret.oauth2_client_auth.value}"
+    CRON_SCHEDULE = "${data.azurerm_key_vault_secret.cron_schedule.value}"
 
     ROOT_LOGGING_LEVEL = "${var.root_logging_level}"
     LOG_LEVEL_SPRING_WEB = "${var.log_level_spring_web}"

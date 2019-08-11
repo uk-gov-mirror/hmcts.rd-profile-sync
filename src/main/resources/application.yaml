@@ -76,6 +76,10 @@ idam:
     microservice: rd_professional_api
     url: ${S2S_URL:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}
 
+# Scheduler configuration
+scheduler:
+  config: ${CRON_SCHEDULE:*/500 * * * * *}
+
 userprofile:
   api:
     url: ${USER_PROFILE_URL:http://rd-user-profile-api-preview.service.core-compute-preview.internal}
