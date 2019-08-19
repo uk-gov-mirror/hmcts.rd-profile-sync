@@ -163,7 +163,8 @@ sonarqube {
 		property "sonar.pitest.mode", "reuseReport"
 		property "sonar.pitest.reportsDirectory", "build/reports/pitest"
 		property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/profilesync/configuration/**," +
-			    "src/main/java/uk/gov/hmcts/reform/profilesync/ProfileSyncApplication.java"
+			    "src/main/java/uk/gov/hmcts/reform/profilesync/ProfileSyncApplication.java," +
+				"src/main/java/uk/gov/hmcts/reform/profilesync/util/UserProfileSyncJobScheduler.java"
 		
 				
 	}
