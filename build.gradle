@@ -155,13 +155,13 @@ project.tasks['pitest'].group = "Verification"
 
 sonarqube {
 	properties {
-		property "sonar.projectName", "RD :: User Profile Sync api"
+		property "sonar.projectName", "rd-user-profile-sync-api"
 		property "sonar.projectKey", "RDPROFILESYNCAPI"
 		property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/test.exec"
 		property "sonar.jacoco.itReportPath", "${project.buildDir}/jacoco/integration.exec"
 		property "sonar.pitest.mode", "reuseReport"
 		property "sonar.pitest.reportsDirectory", "build/reports/pitest"
-		property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/profilesync/configuration/**," +
+		property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/profilesync/config/**," +
 			    "src/main/java/uk/gov/hmcts/reform/profilesync/ProfileSyncApplication.java," +
 				"src/main/java/uk/gov/hmcts/reform/profilesync/util/UserProfileSyncJobScheduler.java"
 		
