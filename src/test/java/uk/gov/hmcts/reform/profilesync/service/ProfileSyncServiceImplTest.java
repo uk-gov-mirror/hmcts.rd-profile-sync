@@ -189,13 +189,12 @@ public class ProfileSyncServiceImplTest {
         secondPageFormParams.put("page", String.valueOf(1));
         List<IdamClient.User> users = new ArrayList<>();
         IdamClient.User profile = null;
-        for(int i = 0; i < 20; i++) {
+        for (int i = 0; i < 20; i++) {
             profile = createUser("someuser" + i + "@test.com");
             users.add(profile);
         }
-        ObjectMapper mapper = new ObjectMapper();
 
-        String body = mapper.writeValueAsString(users);
+
         Map<String, Collection<String>> headers = new HashMap<>();
         List<String> headersList = new ArrayList<>();
         headersList.add(String.valueOf(22));
@@ -204,7 +203,8 @@ public class ProfileSyncServiceImplTest {
         List<IdamClient.User> secondPageUsers = new ArrayList<>();
         secondPageUsers.add(createUser("someuser" + 21 + "@test.com"));
         secondPageUsers.add(createUser("someuser" + 22 + "@test.com"));
-
+        ObjectMapper mapper = new ObjectMapper();
+        String body = mapper.writeValueAsString(users);
         String secondPageBody = mapper.writeValueAsString(secondPageUsers);
 
         Response response = Response.builder().request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(), Request.Body.empty())).headers(headers).body(body, Charset.defaultCharset()).status(200).build();
