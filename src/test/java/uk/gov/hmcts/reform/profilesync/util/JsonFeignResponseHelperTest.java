@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -86,5 +87,16 @@ public class JsonFeignResponseHelperTest {
         ResponseEntity actual = JsonFeignResponseHelper.toResponseEntity(this.responseMock, new TypeReference<List<IdamClient.User>>(){});
 
         assertThat(actual).isNotNull();
+    }
+
+    @Test
+    public void testToResponseEntityThrowErrorDecode() throws IOException {
+        IOException ioException = mock(IOException.class);
+        Response.Body bodyMock = mock(Response.Body.class);
+        when(responseMock.body()).thenReturn(bodyMock);
+        when(bodyMock.asReader()).thenThrow(IOException.class);
+        Optional actual = JsonFeignResponseHelper.decode(this.responseMock, String.class);
+
+        assertThat(actual.isPresent()).isFalse();
     }
 }
