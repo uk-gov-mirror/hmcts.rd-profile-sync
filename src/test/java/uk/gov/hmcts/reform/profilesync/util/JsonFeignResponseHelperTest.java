@@ -8,9 +8,9 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.type.TypeReference;
 import feign.Response;
 
-
 import java.io.IOException;
 import java.io.Reader;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
