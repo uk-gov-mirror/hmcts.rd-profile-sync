@@ -16,4 +16,4 @@ WORKDIR /opt/app
 
 EXPOSE 8092
 
-CMD [ "rd-user-profile-api.jar" ]
+CMD [ "rd-profile-sync.jar" ]
