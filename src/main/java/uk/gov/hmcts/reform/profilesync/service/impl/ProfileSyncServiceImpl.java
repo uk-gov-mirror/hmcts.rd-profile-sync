@@ -4,21 +4,19 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.MediaType.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.applicationinsights.core.dependencies.google.gson.Gson;
 import feign.Response;
 
+import io.restassured.RestAssured;
 import java.util.*;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
 import uk.gov.hmcts.reform.profilesync.config.TokenConfigProperties;
@@ -68,21 +66,16 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
         formParams.put("redirect_uri", props.getRedirectUri());
         formParams.put("scope", "openid profile roles manage-user create-user search-user");
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
+        io.restassured.response.Response openIdTokenResponse = RestAssured
+                .given()
+                .relaxedHTTPSValidation()
+                .baseUri(props.getUrl())
+                .header(CONTENT_TYPE, APPLICATION_FORM_URLENCODED_VALUE)
+                .params(formParams)
+                .post("/o/token")
+                .andReturn();
 
-        headers.add(CONTENT_TYPE, APPLICATION_FORM_URLENCODED_VALUE);
-        HttpEntity<IdamClient.BearerTokenResponse> entity = new HttpEntity<>(headers);
-
-        ResponseEntity<Map> responseEntity = restTemplate.exchange(props.getUrl() + "/o/token", HttpMethod.POST, entity, Map.class, formParams);
-
-        Map response = objectMapper
-                .convertValue(
-                        responseEntity.getBody(),
-                        Map.class);
-
-        IdamClient.BearerTokenResponse accessTokenResponse = new Gson().fromJson(response.toString(), IdamClient.BearerTokenResponse.class);
+        IdamClient.BearerTokenResponse accessTokenResponse = new Gson().fromJson(openIdTokenResponse.getBody().asString(), IdamClient.BearerTokenResponse.class);
 
         return accessTokenResponse.getAccessToken();
     }
