@@ -3,9 +3,10 @@ package uk.gov.hmcts.reform.profilesync.service;
 import java.util.List;
 
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
-import uk.gov.hmcts.reform.profilesync.domain.UserProfileSyncException;
 
 public interface ProfileSyncService {
+    public static String BASIC = "Basic ";
+    public static String BEARER = "Bearer ";
 
     String getBearerToken();
 
@@ -13,6 +14,6 @@ public interface ProfileSyncService {
 
     List<IdamClient.User> getSyncFeed(String bearerToken, String searchQuery);
 
-    void updateUserProfileFeed(String searchQuery) throws UserProfileSyncException;
+    void updateUserProfileFeed(String searchQuery);
 
 }
