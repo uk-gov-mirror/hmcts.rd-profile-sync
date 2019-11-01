@@ -56,9 +56,6 @@ public interface IdamClient {
         @JsonProperty("lastModified")
         private String lastModified;
 
-        @JsonProperty("locked")
-        private boolean locked;
-
         @JsonProperty("pending")
         private boolean pending;
 
