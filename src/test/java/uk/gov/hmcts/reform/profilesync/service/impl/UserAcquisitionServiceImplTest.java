@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.profilesync.client.UserProfileClient;
 import uk.gov.hmcts.reform.profilesync.domain.GetUserProfileResponse;
 import uk.gov.hmcts.reform.profilesync.domain.IdamStatus;
 import uk.gov.hmcts.reform.profilesync.domain.UserProfile;
+import uk.gov.hmcts.reform.profilesync.domain.UserProfileSyncException;
 import uk.gov.hmcts.reform.profilesync.helper.MockDataProvider;
 import uk.gov.hmcts.reform.profilesync.service.UserAcquisitionService;
 
@@ -55,9 +56,9 @@ public class UserAcquisitionServiceImplTest {
 
     }
 
-    @Test(expected = Test.None.class)
+    @Test(expected = UserProfileSyncException.class)
     public void testFindUserThrowException() throws IOException {
-        int statusCode = 200;
+        int statusCode = 400;
         String bearerToken = "Bearer ey093089r0e90e9f0jj9w00w-f90fsj0sf-fji0fsejs0";
         String s2sToken = "ey0f90sjaf90adjf90asjfsdljfklsf0sfj9s0d";
         String id = MockDataProvider.idamId.toString();
@@ -78,7 +79,7 @@ public class UserAcquisitionServiceImplTest {
 
         Optional<GetUserProfileResponse> getUserProfileResponse = sut.findUser(bearerToken, s2sToken, id);
 
-        assertThat(getUserProfileResponse).isNotNull();
+        assertThat(getUserProfileResponse).isNull();
         assertThat(getUserProfileResponse.isPresent()).isFalse();
 
     }
