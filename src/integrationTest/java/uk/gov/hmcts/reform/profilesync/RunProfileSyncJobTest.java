@@ -23,6 +23,7 @@ public class RunProfileSyncJobTest extends AuthorizationEnabledIntegrationTest {
     @Autowired
     private TokenConfigProperties tokenConfigProperties;
     @Autowired
+
     private SyncJobRepository syncJobRepository;
 
     @Autowired
