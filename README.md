@@ -1,5 +1,6 @@
 # rd-profile-sync
 Scheduled sync job between IDAM and User Profile
+RELEASE 3.00
 
 ### Running unit tests tests:
 
