@@ -5,17 +5,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.profilesync.config.TokenConfigProperties;
-import uk.gov.hmcts.reform.profilesync.domain.Source;
+import uk.gov.hmcts.reform.profilesync.constants.Source;
 import uk.gov.hmcts.reform.profilesync.domain.SyncJobAudit;
 import uk.gov.hmcts.reform.profilesync.domain.SyncJobConfig;
 import uk.gov.hmcts.reform.profilesync.repository.SyncConfigRepository;
 import uk.gov.hmcts.reform.profilesync.repository.SyncJobRepository;
-import uk.gov.hmcts.reform.profilesync.util.UserProfileSyncJobScheduler;
+import uk.gov.hmcts.reform.profilesync.schedular.UserProfileSyncJobScheduler;
 
 @Slf4j
+@RunWith(SpringIntegrationSerenityRunner.class)
 public class RunProfileSyncJobTest extends AuthorizationEnabledIntegrationTest {
 
     @Autowired
@@ -59,7 +62,7 @@ public class RunProfileSyncJobTest extends AuthorizationEnabledIntegrationTest {
         assertThat(syncJobAudit3.getStatus()).isEqualTo("success");
         profileSyncJobScheduler.updateIdamDataWithUserProfile();
         List<SyncJobAudit>  syncJobAudits = syncJobRepository.findByStatus("success");
-        assertThat(syncJobAudits.size()).isEqualTo(2);
+        assertThat(syncJobAudits.size()).isGreaterThan(1);
     }
 
     @Test

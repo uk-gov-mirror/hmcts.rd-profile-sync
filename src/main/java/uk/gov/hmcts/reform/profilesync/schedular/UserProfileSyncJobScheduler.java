@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.profilesync.util;
+package uk.gov.hmcts.reform.profilesync.schedular;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -10,10 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.profilesync.domain.Source;
+import uk.gov.hmcts.reform.profilesync.advice.UserProfileSyncException;
+import uk.gov.hmcts.reform.profilesync.constants.Source;
 import uk.gov.hmcts.reform.profilesync.domain.SyncJobAudit;
 import uk.gov.hmcts.reform.profilesync.domain.SyncJobConfig;
-import uk.gov.hmcts.reform.profilesync.domain.UserProfileSyncException;
 import uk.gov.hmcts.reform.profilesync.repository.SyncConfigRepository;
 import uk.gov.hmcts.reform.profilesync.repository.SyncJobRepository;
 import uk.gov.hmcts.reform.profilesync.service.ProfileSyncService;
@@ -36,6 +36,8 @@ public class UserProfileSyncJobScheduler {
     @Value("${scheduler.hours:}")
     protected String executeSearchQueryFrom;
 
+    private static final String SUCCESS = "success";
+
     @Scheduled(cron = "${scheduler.config}")
     public void updateIdamDataWithUserProfile() {
 
@@ -54,19 +56,18 @@ public class UserProfileSyncJobScheduler {
 
             log.info("searchQuery:: will execute from::DB job run value::" + searchQuery);
 
+        } else if (null != syncJobRepository.findFirstByStatusOrderByAuditTsDesc(SUCCESS)) {
 
-        } else if (null != syncJobRepository.findFirstByStatusOrderByAuditTsDesc("success")) {
-
-            SyncJobAudit auditjob = syncJobRepository.findFirstByStatusOrderByAuditTsDesc("success");
+            SyncJobAudit auditjob = syncJobRepository.findFirstByStatusOrderByAuditTsDesc(SUCCESS);
             searchQuery = searchQuery + getLastBatchFailureTimeInHours(auditjob.getAuditTs());
 
-            log.info(" SearchQuery::executing from last success ::", searchQuery);
+            log.info(" SearchQuery::executing from last success ::" + searchQuery);
         }
 
         try {
 
             profileSyncService.updateUserProfileFeed(searchQuery);
-            SyncJobAudit syncJobAudit = new SyncJobAudit(201, "success", Source.SYNC);
+            SyncJobAudit syncJobAudit = new SyncJobAudit(201, SUCCESS, Source.SYNC);
             syncJobRepository.save(syncJobAudit);
 
             // setting the value to run next job for from
@@ -75,8 +76,10 @@ public class UserProfileSyncJobScheduler {
                 syncConfigRepository.save(syncJobConfig);
             }
 
+
+
         } catch (UserProfileSyncException e) {
-            log.error("Sync Batch Job Failed::", e);
+            log.info("Sync Batch Job Failed::", e.getErrorMessage());
             SyncJobAudit syncJobAudit = new SyncJobAudit(500, "fail", Source.SYNC);
             syncJobRepository.save(syncJobAudit);
 
@@ -102,8 +105,3 @@ public class UserProfileSyncJobScheduler {
     }
 
 }
-
-
-
-
-

@@ -8,9 +8,9 @@ def product = "rd"
 def component = "profile-sync"
 
 def secrets = [
-        's2s-${env}': [
-                secret('microservicekey-rd-professional-api', 'S2S_SECRET')
-        ]
+  's2s-${env}': [
+    secret('microservicekey-rd-professional-api', 'S2S_SECRET')
+  ]
 ]
 
 static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
@@ -23,19 +23,21 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 }
 
 def vaultOverrides = [
-        'preview' : 'aat',
-        'spreview': 'saat'
+    'preview' : 'aat',
+    'spreview': 'saat'
 ]
 
 withPipeline(type, product, component) {
+
 
     overrideVaultEnvironments(vaultOverrides)
     loadVaultSecrets(secrets)
 
     enableDbMigration('rd')
 
-    enableDockerBuild()
     installCharts()
+    disableLegacyDeployment()
+
     disableLegacyDeployment()
     enableAksStagingDeployment()
 
@@ -49,11 +51,21 @@ withPipeline(type, product, component) {
     }
 
 
+    enableAksStagingDeployment()
+
+    after('integrationTest:preview') {
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+    }
+
+    after('integrationTest:aat') {
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+    }
+
     after('functionalTest:preview') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
     }
 
-    after('functionalTest:perftest') {
+    after('functionalTest:aat') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
     }
 
