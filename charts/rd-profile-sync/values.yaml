@@ -24,3 +24,4 @@ java:
         - OAUTH2-CLIENT-AUTH
         - SEARCH-QUERY-FROM
         - CRON-SCHEDULE
+        - OPEN-ID-API-BASE-URI
