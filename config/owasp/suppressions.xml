@@ -167,13 +167,11 @@
         <cpe>cpe:/a:opera:opera</cpe>
     </suppress>
     <suppress>
-        <notes><![CDATA[
-   file name: gradle-pitest-plugin-1.3.0.jar
-   ]]></notes>
-        <sha1>544d22a32e5c409c643a6a7f15513f74bbabccde</sha1>
-        <cpe>cpe:/a:gradle:gradle</cpe>
-        <cve>CVE-2019-15052</cve>
-        <cve>CVE-2019-16370</cve>
+    <notes><![CDATA[
+    file name: gradle-pitest-plugin*.jar: readline.jar
+    ]]></notes>
+    <filePath regex="true">.*\**\.jar</filePath>
+    <cpe>cpe:/a:gradle:gradle</cpe>
     </suppress>
     <suppress>
         <notes><![CDATA[
