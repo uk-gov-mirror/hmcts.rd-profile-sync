@@ -32,7 +32,7 @@ import uk.gov.hmcts.reform.profilesync.service.UserAcquisitionService;
 
 public class UserAcquisitionServiceImplTest {
 
-    private UserProfileClient userProfileClientMock = Mockito.mock(UserProfileClient.class); //mocked as its an interface
+    private UserProfileClient userProfileClientMock = Mockito.mock(UserProfileClient.class);//mocked as its an interface
     private UserAcquisitionService sut = new UserAcquisitionServiceImpl(userProfileClientMock);
 
     private UserProfile profile;
@@ -62,7 +62,8 @@ public class UserAcquisitionServiceImplTest {
     public void testFindUser() throws IOException {
         String body = mapper.writeValueAsString(userProfileResponse);
 
-        Response response = Response.builder().request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(), Request.Body.empty(), null)).body(body, Charset.defaultCharset()).status(200).build();
+        Response response = Response.builder().request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(),
+                Request.Body.empty(), null)).body(body, Charset.defaultCharset()).status(200).build();
 
         Response responseMock = mock(Response.class);
         when(responseMock.status()).thenReturn(response.status());
@@ -86,7 +87,8 @@ public class UserAcquisitionServiceImplTest {
     public void testFindUserThrowExceptionWith400() throws IOException {
         String body = mapper.writeValueAsString(userProfileResponse);
 
-        Response response = Response.builder().request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(), Request.Body.empty(), null)).body(body, Charset.defaultCharset()).status(400).build();
+        Response response = Response.builder().request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(),
+                Request.Body.empty(), null)).body(body, Charset.defaultCharset()).status(400).build();
 
         Response responseMock = mock(Response.class);
         when(responseMock.status()).thenReturn(response.status());

@@ -78,9 +78,11 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
 
         if (openIdTokenResponse.getStatusCode() > 300) {
 
-            throw new UserProfileSyncException(HttpStatus.valueOf(openIdTokenResponse.getStatusCode()),"Idam Service Failed while bearer token generate");
+            throw new UserProfileSyncException(HttpStatus.valueOf(openIdTokenResponse.getStatusCode()),
+                    "Idam Service Failed while bearer token generate");
         }
-        IdamClient.BearerTokenResponse accessTokenResponse = new Gson().fromJson(openIdTokenResponse.getBody().asString(), IdamClient.BearerTokenResponse.class);
+        IdamClient.BearerTokenResponse accessTokenResponse = new Gson()
+                .fromJson(openIdTokenResponse.getBody().asString(), IdamClient.BearerTokenResponse.class);
         return accessTokenResponse.getAccessToken();
     }
 
@@ -101,8 +103,8 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
         do {
             formParams.put("page", String.valueOf(counter));
             Response response = idamClient.getUserFeed(bearerToken, formParams);
-            ResponseEntity responseEntity = JsonFeignResponseUtil.toResponseEntity(response, new TypeReference<List<IdamClient.User>>() {
-            });
+            ResponseEntity responseEntity = JsonFeignResponseUtil.toResponseEntity(response,
+                    new TypeReference<List<IdamClient.User>>(){});
 
             if (response.status() == 200) {
 
@@ -113,7 +115,7 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
                     totalCount = Integer.parseInt(responseEntity.getHeaders().get("X-Total-Count").get(0));
                     log.info("Header Records count from Idam ::" + totalCount);
                 } catch (Exception ex) {
-                    //There is No header.
+                    //There is No header and not return from IDAM.
                     log.error("X-Total-Count header not return Idam Search Service", ex);
                 }
             } else {
@@ -131,7 +133,8 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
     public void updateUserProfileFeed(String searchQuery) throws UserProfileSyncException {
         log.info("Inside updateUserProfileFeed");
         String bearerToken = BEARER + getBearerToken();
-        profileUpdateService.updateUserProfile(searchQuery, bearerToken, getS2sToken(), getSyncFeed(bearerToken, searchQuery));
+        profileUpdateService.updateUserProfile(searchQuery, bearerToken, getS2sToken(),
+                getSyncFeed(bearerToken, searchQuery));
         log.info("After updateUserProfileFeed");
     }
 }
