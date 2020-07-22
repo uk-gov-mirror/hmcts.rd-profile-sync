@@ -19,16 +19,14 @@ import org.springframework.test.context.TestPropertySource;
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
 import uk.gov.hmcts.reform.profilesync.client.UserProfileClient;
 import uk.gov.hmcts.reform.profilesync.constants.IdamStatus;
-import uk.gov.hmcts.reform.profilesync.repository.SyncConfigRepository;
-import uk.gov.hmcts.reform.profilesync.repository.SyncJobRepository;
+import uk.gov.hmcts.reform.profilesync.repository.ProfileSyncAuditDetailsRepository;
+import uk.gov.hmcts.reform.profilesync.repository.ProfileSyncAuditRepository;
+import uk.gov.hmcts.reform.profilesync.repository.ProfileSyncConfigRepository;
 import uk.gov.hmcts.reform.profilesync.schedular.UserProfileSyncJobScheduler;
 
 @Configuration
 @TestPropertySource(properties = {"S2S_URL=http://127.0.0.1:8990","IDAM_URL:http://127.0.0.1:5000", "USER_PROFILE_URL:http://127.0.0.1:8091"})
-public abstract class AuthorizationEnabledIntegrationTest  extends SpringBootIntegrationTest {
-
-    @Autowired
-    protected SyncJobRepository syncJobRepository;
+public abstract class AuthorizationEnabledIntTest extends SpringBootIntTest {
 
     @Autowired
     protected UserProfileClient userProfileFeignClient;
@@ -40,7 +38,13 @@ public abstract class AuthorizationEnabledIntegrationTest  extends SpringBootInt
     protected UserProfileSyncJobScheduler profileSyncJobScheduler;
 
     @Autowired
-    protected SyncConfigRepository syncConfigRepository;
+    protected ProfileSyncConfigRepository profileSyncConfigRepository;
+
+    @Autowired
+    protected ProfileSyncAuditRepository profileSyncRepository;
+
+    @Autowired
+    protected ProfileSyncAuditDetailsRepository profileSyncAuditDetailsRepository;
 
     @ClassRule
     public static WireMockRule s2sService = new WireMockRule(8990);
@@ -128,8 +132,8 @@ public abstract class AuthorizationEnabledIntegrationTest  extends SpringBootInt
 
     @After
     public void cleanupTestData() {
-
-        syncJobRepository.deleteAll();
+        profileSyncAuditDetailsRepository.deleteAll();
+        profileSyncRepository.deleteAll();
     }
 
     public void userProfileCreateUserWireMock(HttpStatus status) {
