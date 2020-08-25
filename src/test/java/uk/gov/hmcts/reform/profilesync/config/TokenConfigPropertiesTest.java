@@ -14,39 +14,38 @@ public class TokenConfigPropertiesTest {
     private TokenConfigProperties sut = new TokenConfigProperties();
 
     @Test
-    public void test_GetClientId() {
+    public void testGetClientId() {
         sut.setClientId(CLIENT_ID);
         assertThat(sut.getClientId()).isEqualTo(CLIENT_ID);
     }
 
     @Test
-    public void test_GetClientSecret() {
+    public void testGetClientSecret() {
         sut.setClientSecret(CLIENT_SECRET);
         assertThat(sut.getClientSecret()).isEqualTo(CLIENT_SECRET);
     }
 
     @Test
-    public void test_GetRedirectUri() {
+    public void testGetRedirectUri() {
         sut.setRedirectUri(REDIRECT_URI);
         assertThat(sut.getRedirectUri()).isEqualTo(REDIRECT_URI);
     }
 
     @Test
-    public void test_GetAuthorization() {
+    public void testGetAuthorization() {
         sut.setAuthorization(AUTHORIZATION);
         assertThat(sut.getAuthorization()).isEqualTo(AUTHORIZATION);
     }
 
     @Test
-    public void test_GetClientAuthorization() {
+    public void testGetClientAuthorization() {
         sut.setClientAuthorization(CLIENT_AUTHORIZATION);
         assertThat(sut.getClientAuthorization()).isEqualTo(CLIENT_AUTHORIZATION);
     }
 
     @Test
-    public void test_GetUrl() {
+    public void testGetUrl() {
         sut.setUrl("www.url.com");
         assertThat(sut.getUrl()).isEqualTo("www.url.com");
     }
-
 }

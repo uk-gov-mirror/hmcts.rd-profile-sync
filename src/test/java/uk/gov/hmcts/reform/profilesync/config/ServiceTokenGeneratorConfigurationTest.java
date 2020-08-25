@@ -13,7 +13,7 @@ public class ServiceTokenGeneratorConfigurationTest {
     private ServiceTokenGeneratorConfiguration sut = new ServiceTokenGeneratorConfiguration();
 
     @Test
-    public void test_ServiceAuthTokenGenerator() {
+    public void testServiceAuthTokenGenerator() {
         final String secret = "A6A6PRLRFWQLKP6";
         final String microService = "rd_professional_api";
         final ServiceAuthorisationApi serviceAuthorisationApiMock = Mockito.mock(ServiceAuthorisationApi.class);

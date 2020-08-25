@@ -3,14 +3,12 @@ package uk.gov.hmcts.reform.profilesync.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.profilesync.helper.MockDataProvider.IDAM_ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import feign.FeignException;
 import feign.Request;
 import feign.Response;
 
@@ -30,10 +28,12 @@ import uk.gov.hmcts.reform.profilesync.domain.UserProfile;
 import uk.gov.hmcts.reform.profilesync.domain.response.GetUserProfileResponse;
 import uk.gov.hmcts.reform.profilesync.service.UserAcquisitionService;
 
+@SuppressWarnings("unchecked")
 public class UserAcquisitionServiceImplTest {
 
     private UserProfileClient userProfileClientMock = Mockito.mock(UserProfileClient.class);//mocked as its an interface
-    private UserAcquisitionService sut = new UserAcquisitionServiceImpl(userProfileClientMock, "RD_Profile_Sync");
+    private UserAcquisitionService sut = new UserAcquisitionServiceImpl(userProfileClientMock,
+            "RD_Profile_Sync");
 
     private UserProfile profile;
     private GetUserProfileResponse userProfileResponse;
@@ -59,17 +59,12 @@ public class UserAcquisitionServiceImplTest {
     }
 
     @Test
-    public void testFindUser() throws IOException {
+    public void findUser() throws IOException {
         String body = mapper.writeValueAsString(userProfileResponse);
 
-        Response response = Response.builder().request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(),
-                Request.Body.empty(), null)).body(body, Charset.defaultCharset()).status(200).build();
-
-        Response responseMock = mock(Response.class);
-        when(responseMock.status()).thenReturn(response.status());
-        when(responseMock.body()).thenReturn(response.body());
-
-        when(userProfileClientMock.findUser(any(), any(), any())).thenReturn(responseMock);
+        when(userProfileClientMock.findUser(any(), any(), any())).thenReturn(Response.builder()
+                .request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(), Request.Body.empty(),
+                        null)).body(body, Charset.defaultCharset()).status(200).build());
         Optional<GetUserProfileResponse> getUserProfileResponse = sut.findUser(bearerToken, s2sToken, id);
 
         assertThat(getUserProfileResponse).isNotNull();
@@ -77,37 +72,16 @@ public class UserAcquisitionServiceImplTest {
         assertThat(getUserProfileResponse.get().getFirstName()).isEqualTo(profile.getFirstName());
         assertThat(getUserProfileResponse.get().getLastName()).isEqualTo(profile.getLastName());
         assertThat(getUserProfileResponse.get().getIdamStatus()).isEqualTo(profile.getIdamStatus());
-
         verify(userProfileClientMock, times(1)).findUser(any(), any(), any());
-        verify(responseMock, times(1)).close();
     }
 
 
     @Test(expected = UserProfileSyncException.class)
-    public void testFindUserThrowExceptionWith400() throws IOException {
+    public void findUserThrowExceptionWith400() throws IOException {
         String body = mapper.writeValueAsString(userProfileResponse);
-
-        Response response = Response.builder().request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(),
-                Request.Body.empty(), null)).body(body, Charset.defaultCharset()).status(400).build();
-
-        Response responseMock = mock(Response.class);
-        when(responseMock.status()).thenReturn(response.status());
-        when(responseMock.body()).thenReturn(response.body());
-
-        when(userProfileClientMock.findUser(any(), any(), any())).thenReturn(responseMock);
-
-        Optional<GetUserProfileResponse> getUserProfileResponse = sut.findUser(bearerToken, s2sToken, id);
-
-        assertThat(getUserProfileResponse).isNotPresent().isNull();
-        verify(userProfileClientMock, times(1)).findUser(any(), any(), any());
-        verify(responseMock, times(1)).close();
-    }
-
-    @Test(expected = UserProfileSyncException.class)
-    public void test_FindUserThrowFeignException() {
-        FeignException feignExceptionMock = mock(FeignException.class);
-
-        when(userProfileClientMock.findUser(any(), any(), any())).thenThrow(feignExceptionMock);
+        when(userProfileClientMock.findUser(any(), any(), any())).thenReturn(Response.builder()
+                .request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(), Request.Body.empty(),
+                        null)).body(body, Charset.defaultCharset()).status(400).build());
 
         Optional<GetUserProfileResponse> getUserProfileResponse = sut.findUser(bearerToken, s2sToken, id);
 
@@ -116,16 +90,25 @@ public class UserAcquisitionServiceImplTest {
         verify(userProfileClientMock, times(1)).findUser(any(), any(), any());
     }
 
+
+
     @Test(expected = UserProfileSyncException.class)
-    public void testFindUserThrowExceptionWith500()  {
-        FeignException feignExceptionMock = mock(FeignException.class);
-        doThrow(feignExceptionMock).when(userProfileClientMock).findUser(any(), any(), any());
-        sut.findUser(bearerToken, s2sToken, id);
+    public void findUserThrowExceptionWith401WithNoBody() throws IOException {
+
+        when(userProfileClientMock.findUser(any(), any(), any())).thenReturn(Response.builder()
+                .request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(), Request.Body.empty(),
+                        null)).body(null, Charset.defaultCharset()).status(401)
+                .reason("Un Authorized").build());
+        Optional<GetUserProfileResponse> getUserProfileResponse = sut.findUser(bearerToken, s2sToken, id);
+
+        assertThat(getUserProfileResponse).isNull();
+        assertThat(getUserProfileResponse.isPresent()).isFalse();
+        verify(userProfileClientMock, times(1)).findUser(any(), any(), any());
     }
 
-    @Test
-    public void test_objectUserAcquisitionServiceImpl() {
-        UserAcquisitionServiceImpl userAcquisitionService = new UserAcquisitionServiceImpl();
-        assertThat(userAcquisitionService).isNotNull();
+    @Test(expected = UserProfileSyncException.class)
+    public void findUserThrowExceptionWith500() throws IOException {
+        doThrow(UserProfileSyncException.class).when(userProfileClientMock).findUser(any(), any(), any());
+        sut.findUser(bearerToken, s2sToken, id);
     }
 }

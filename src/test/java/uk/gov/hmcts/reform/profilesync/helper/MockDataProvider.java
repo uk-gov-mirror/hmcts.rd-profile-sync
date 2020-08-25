@@ -27,10 +27,7 @@ public class MockDataProvider {
     public static final List<String> defaultRoles = new ArrayList<>(
             Arrays.asList("pui-user-manager", "pui-organisation-manager")
     );
-
     public static final long userProfileId = 4501;
-
-
     // OAUTH2 mock data
     public static final String CLIENT_ID = "5489023";
     public static final String CLIENT_SECRET = "dd7f5a7-8866-11r9-gf42-226bf8964f64";

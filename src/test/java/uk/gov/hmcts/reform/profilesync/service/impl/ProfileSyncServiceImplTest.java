@@ -23,8 +23,10 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.Before;
@@ -35,6 +37,7 @@ import uk.gov.hmcts.reform.profilesync.advice.UserProfileSyncException;
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
 import uk.gov.hmcts.reform.profilesync.client.UserProfileClient;
 import uk.gov.hmcts.reform.profilesync.config.TokenConfigProperties;
+import uk.gov.hmcts.reform.profilesync.domain.ProfileSyncAudit;
 import uk.gov.hmcts.reform.profilesync.domain.response.OpenIdAccessTokenResponse;
 import uk.gov.hmcts.reform.profilesync.service.ProfileUpdateService;
 
@@ -55,6 +58,8 @@ public class ProfileSyncServiceImplTest {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(5000);
 
+    ProfileSyncAudit profileSyncAudit;
+
     @SuppressWarnings("unchecked")
     @Before
     public void setUp() {
@@ -63,6 +68,8 @@ public class ProfileSyncServiceImplTest {
         final String authorization = "c2hyZWVkaGFyLmxvbXRlQGhtY3RzLm5ldDpITUNUUzEyMzQ=";
         final String clientAuth = "cmQteHl6LWFwaTp4eXo=";
         final String url = "http://127.0.0.1:5000";
+
+        profileSyncAudit  = new ProfileSyncAudit();
 
         tokenConfigProperties.setClientId(clientId);
         tokenConfigProperties.setClientAuthorization(clientAuth);
@@ -124,7 +131,7 @@ public class ProfileSyncServiceImplTest {
     }
 
     @Test
-    public void test_GetS2sToken() {
+    public void getS2sToken() {
         final String expect = "Bearer xyz";
         when(tokenGeneratorMock.generate()).thenReturn(expect);
 
@@ -150,15 +157,17 @@ public class ProfileSyncServiceImplTest {
         Response response = Response.builder().request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(),
                 Request.Body.empty(), null)).body(body, Charset.defaultCharset()).status(200).build();
         when(idamClientMock.getUserFeed(bearerToken, formParams)).thenReturn(response);
-        when(userProfileClientMock.findUser(any(), any(), any())).thenReturn(Response.builder()
-                .request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(), Request.Body.empty(),
+        when(userProfileClientMock.findUser(any(), any(), any())).thenReturn(Response.builder().request(
+                Request.create(Request.HttpMethod.GET, "", new HashMap<>(), Request.Body.empty(),
                         null)).body(body, Charset.defaultCharset()).status(200).build());
         assertThat(response).isNotNull();
 
-        List<IdamClient.User> useResponse = sut.getSyncFeed(bearerToken, searchQuery);
-        assertThat(useResponse).isNotNull();
-        assertThat(useResponse.get(0).getEmail()).isEqualTo("some@some.com");
+        Set<IdamClient.User> useResponses = sut.getSyncFeed(bearerToken, searchQuery);
+        assertThat(useResponses).isNotNull();
 
+        useResponses.forEach(useResponse ->  {
+            assertThat(useResponse.getEmail()).isEqualTo("some@some.com");
+        });
         verify(idamClientMock, times(1)).getUserFeed(bearerToken, formParams);
     }
 
@@ -179,8 +188,8 @@ public class ProfileSyncServiceImplTest {
         ObjectMapper mapper = new ObjectMapper();
         String body = mapper.writeValueAsString(new ArrayList<>());
 
-        Response response = Response.builder().request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(),
-                Request.Body.empty(), null)).headers(headers).body(body,
+        Response response = Response.builder().request(Request.create(Request.HttpMethod.GET, "",
+                new HashMap<>(), Request.Body.empty(), null)).headers(headers).body(body,
                 Charset.defaultCharset()).status(200).build();
         when(idamClientMock.getUserFeed(bearerToken, formParams)).thenReturn(response);
         when(userProfileClientMock.findUser(any(), any(), any())).thenReturn(Response.builder()
@@ -188,14 +197,14 @@ public class ProfileSyncServiceImplTest {
                         null)).body(body, Charset.defaultCharset()).status(200).build());
         assertThat(response).isNotNull();
 
-        List<IdamClient.User> useResponse = sut.getSyncFeed(bearerToken, searchQuery);
+        Set<IdamClient.User> useResponse = sut.getSyncFeed(bearerToken, searchQuery);
         assertThat(useResponse).isEmpty();
 
         verify(idamClientMock, times(1)).getUserFeed(bearerToken, formParams);
     }
 
     @Test
-    public void test_GetSyncFeed_when_more_than_20_records() throws JsonProcessingException {
+    public void getSyncFeedWhenMoreThan20Records() throws JsonProcessingException {
         final String bearerToken = "Bearer iJOT05FWIiOiJwcmF2ZWVuLnRob3R0ZW1wdWRpMyEXwm5B";
         final String searchQuery = "lastModified:>now-24h";
 
@@ -205,43 +214,43 @@ public class ProfileSyncServiceImplTest {
         Map<String, String> secondPageFormParams = new HashMap<>();
         secondPageFormParams.put("query", searchQuery);
         secondPageFormParams.put("page", String.valueOf(1));
-        List<IdamClient.User> users = new ArrayList<>();
+        Set<IdamClient.User> users = new HashSet<>();
         IdamClient.User profile;
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 500; i++) {
             profile = createUser("someuser" + i + "@test.com");
             users.add(profile);
         }
 
         Map<String, Collection<String>> headers = new HashMap<>();
         List<String> headersList = new ArrayList<>();
-        headersList.add(String.valueOf(22));
+        headersList.add(String.valueOf(502));
         headers.put("X-Total-Count", headersList);
 
         List<IdamClient.User> secondPageUsers = new ArrayList<>();
-        secondPageUsers.add(createUser("someuser" + 21 + "@test.com"));
-        secondPageUsers.add(createUser("someuser" + 22 + "@test.com"));
+        secondPageUsers.add(createUser("someuser" + 501 + "@test.com"));
+        secondPageUsers.add(createUser("someuser" + 502 + "@test.com"));
         ObjectMapper mapper = new ObjectMapper();
         String body = mapper.writeValueAsString(users);
         String secondPageBody = mapper.writeValueAsString(secondPageUsers);
 
         Response response = Response.builder().request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(),
-                Request.Body.empty(), null)).headers(headers).body(body,
-                Charset.defaultCharset()).status(200).build();
-        Response secondPageResponse = Response.builder().request(Request.create(Request.HttpMethod.GET, "",
-                new HashMap<>(), Request.Body.empty(), null)).headers(headers).body(secondPageBody,
-                Charset.defaultCharset()).status(200).build();
+                Request.Body.empty(), null)).headers(headers)
+                .body(body, Charset.defaultCharset()).status(200).build();
+        Response secondPageResponse = Response.builder().request(Request.create(Request.HttpMethod.GET,
+                "", new HashMap<>(), Request.Body.empty(), null)).headers(headers)
+                .body(secondPageBody, Charset.defaultCharset()).status(200).build();
         assertThat(response).isNotNull();
         assertThat(secondPageResponse).isNotNull();
 
         when(idamClientMock.getUserFeed(bearerToken, formParams)).thenReturn(response);
         when(idamClientMock.getUserFeed(bearerToken, secondPageFormParams)).thenReturn(secondPageResponse);
-        when(userProfileClientMock.findUser(any(), any(), any())).thenReturn(Response.builder().request(
-                Request.create(Request.HttpMethod.GET, "", new HashMap<>(), Request.Body.empty(),
+        when(userProfileClientMock.findUser(any(), any(), any())).thenReturn(Response.builder()
+                .request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(), Request.Body.empty(),
                         null)).body(body, Charset.defaultCharset()).status(200).build());
 
-        List<IdamClient.User> useResponse = sut.getSyncFeed(bearerToken, searchQuery);
+        Set<IdamClient.User> useResponse = sut.getSyncFeed(bearerToken, searchQuery);
         assertThat(useResponse).isNotEmpty();
-        assertThat(useResponse.size()).isEqualTo(22);
+        assertThat(useResponse.size()).isEqualTo(502);
         assertThat(useResponse.containsAll(users)).isTrue();
         assertThat(useResponse.containsAll(secondPageUsers)).isTrue();
 
@@ -249,7 +258,7 @@ public class ProfileSyncServiceImplTest {
     }
 
     @Test(expected = UserProfileSyncException.class)
-    public void test_GetSyncFeed_when_400() throws JsonProcessingException {
+    public void getSyncFeedWhen400() throws JsonProcessingException {
         final String bearerToken = "Bearer eyJ0eXAiOiJKV1QiLCPSIsImFsZyI6IlJTMjU2In0";
         final String searchQuery = "lastModified:>now-24h";
 
@@ -257,25 +266,26 @@ public class ProfileSyncServiceImplTest {
         formParams.put("query", searchQuery);
         formParams.put("page", String.valueOf(0));
 
-        List<IdamClient.User> users = new ArrayList<>();
+        Set<IdamClient.User> users = new HashSet<>();
         users.add(createUser("some@some.com"));
 
         ObjectMapper mapper = new ObjectMapper();
         String body = mapper.writeValueAsString(users);
 
-        Response response = Response.builder().request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(),
-                Request.Body.empty(), null)).body(body, Charset.defaultCharset()).status(400).build();
+        Response response = Response.builder().request(Request.create(Request.HttpMethod.GET, "",
+                new HashMap<>(), Request.Body.empty(), null)).body(body, Charset.defaultCharset())
+                .status(400).build();
         when(idamClientMock.getUserFeed(bearerToken, formParams)).thenReturn(response);
         assertThat(response).isNotNull();
 
-        List<IdamClient.User> useResponseList = sut.getSyncFeed(bearerToken, searchQuery);
+        Set<IdamClient.User> useResponseList = sut.getSyncFeed(bearerToken, searchQuery);
         assertThat(useResponseList).isEmpty();
 
         verify(idamClientMock, times(1)).getUserFeed(bearerToken, formParams);
     }
 
     @Test
-    public void test_UpdateUserProfileFeed() throws Exception {
+    public void updateUserProfileFeed() throws Exception {
         final String bearerToken = "eyJ0eXAiOiJKV1QiLCJ6aXAiOi";
         final String bearerTokenJson = "{" + "  \"access_token\": \"" + bearerToken + "\"" + "}";
         final String searchQuery = "lastModified:>now-24h";
@@ -304,24 +314,23 @@ public class ProfileSyncServiceImplTest {
         when(openIdTokenResponseMock.getAccessToken()).thenReturn(bearerToken);
         when(idamClientMock.getOpenIdToken(any())).thenReturn(openIdTokenResponseMock);
         when(idamClientMock.getUserFeed(eq("Bearer " + bearerToken), any())).thenReturn(response);
-        when(userProfileClientMock.findUser(any(), any(), any())).thenReturn(Response.builder()
-                .request(Request.create(Request.HttpMethod.GET, "", new HashMap<>(), Request.Body.empty(),
+        when(userProfileClientMock.findUser(any(), any(), any())).thenReturn(Response.builder().request(
+                Request.create(Request.HttpMethod.GET, "", new HashMap<>(), Request.Body.empty(),
                         null)).body(body, Charset.defaultCharset()).status(200).build());
         assertThat(response).isNotNull();
 
-        sut.updateUserProfileFeed(searchQuery);
+        sut.updateUserProfileFeed(searchQuery,profileSyncAudit);
 
         verify(profileUpdateServiceMock, times(1)).updateUserProfile(eq(searchQuery),
-                eq("Bearer " + bearerToken), any(), any());
+                eq("Bearer " + bearerToken), any(), any(),any());
         verify(idamClientMock, times(1)).getUserFeed(eq("Bearer " + bearerToken), any());
     }
 
     @Test
-    public void test_objectProfileSyncServiceImpl() {
+    public void objectProfileSyncServiceImpl() {
         ProfileSyncServiceImpl profileSyncService = new ProfileSyncServiceImpl();
         assertThat(profileSyncService).isNotNull();
     }
-
 
     private IdamClient.User createUser(String email) {
         IdamClient.User profile = new IdamClient.User();

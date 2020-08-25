@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
-import uk.gov.hmcts.reform.profilesync.domain.response.UserProfileResponse;
+import uk.gov.hmcts.reform.profilesync.domain.response.GetUserProfileResponse;
 import uk.gov.hmcts.reform.profilesync.helper.MockDataProvider;
 
 public class JsonFeignResponseUtilTest {
@@ -45,22 +45,21 @@ public class JsonFeignResponseUtilTest {
         when(responseMock.status()).thenReturn(statusCode);
     }
 
-
     @Test
-    public void test_Decode() {
-        JsonFeignResponseUtil.decode(responseMock, UserProfileResponse.class);
-        ResponseEntity entity = JsonFeignResponseUtil.toResponseEntity(this.responseMock, UserProfileResponse.class);
+    public void testDecode() {
+        JsonFeignResponseUtil.decode(responseMock, GetUserProfileResponse.class);
+        ResponseEntity entity = JsonFeignResponseUtil.toResponseEntity(this.responseMock, GetUserProfileResponse.class);
         assertThat(entity).isNotNull();
     }
 
     @Test
-    public void test_ToResponseEntity() {
-        ResponseEntity actual = JsonFeignResponseUtil.toResponseEntity(this.responseMock, UserProfileResponse.class);
+    public void testToResponseEntity() {
+        ResponseEntity actual = JsonFeignResponseUtil.toResponseEntity(this.responseMock, GetUserProfileResponse.class);
         assertThat(actual).isNotNull();
     }
 
     @Test
-    public void test_ConvertHeaders() {
+    public void testConvertHeaders() {
         Map<String, Collection<String>> data = new HashMap<>();
         Collection<String> list = asList("Authorization", MockDataProvider.AUTHORIZATION);
         data.put("MyHttpData", list);
@@ -72,7 +71,7 @@ public class JsonFeignResponseUtilTest {
     }
 
     @Test
-    public void test_ToResponseEntityThrowError() throws IOException {
+    public void testToResponseEntityThrowError() throws IOException {
         when(bodyMock.asReader(Charset.defaultCharset())).thenThrow(IOException.class);
         ResponseEntity actual = JsonFeignResponseUtil.toResponseEntity(this.responseMock,
                 new TypeReference<List<IdamClient.User>>() {});
@@ -80,7 +79,7 @@ public class JsonFeignResponseUtilTest {
     }
 
     @Test
-    public void test_ToResponseEntityThrowErrorDecode() throws IOException {
+    public void testToResponseEntityThrowErrorDecode() throws IOException {
         when(bodyMock.asReader(Charset.defaultCharset())).thenThrow(IOException.class);
         Optional actual = JsonFeignResponseUtil.decode(this.responseMock, String.class);
 
@@ -88,7 +87,7 @@ public class JsonFeignResponseUtilTest {
     }
 
     @Test
-    public void test_privateConstructor() throws Exception {
+    public void privateConstructorTest() throws Exception {
         Constructor<JsonFeignResponseUtil> constructor = JsonFeignResponseUtil.class.getDeclaredConstructor();
         assertTrue(Modifier.isPrivate(constructor.getModifiers()));
         constructor.setAccessible(true);

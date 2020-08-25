@@ -11,7 +11,7 @@ public class FeignConfigurationTest {
     private FeignConfiguration feignConfiguration = new FeignConfiguration();
 
     @Test
-    public void test_FeignFormEncoder() {
+    public void testFeignFormEncoder() {
         Encoder result = feignConfiguration.feignFormEncoder();
 
         assertThat(result).isNotNull();

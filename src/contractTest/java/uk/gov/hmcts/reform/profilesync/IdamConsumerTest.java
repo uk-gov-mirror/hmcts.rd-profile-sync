@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.Pact;
+import au.com.dius.pact.consumer.dsl.DslPart;
 import au.com.dius.pact.consumer.dsl.PactDslJsonArray;
 import au.com.dius.pact.consumer.dsl.PactDslJsonBody;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
@@ -12,18 +13,16 @@ import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.model.RequestResponsePact;
 import com.google.common.collect.Maps;
 import groovy.util.logging.Slf4j;
-import io.restassured.RestAssured;
-import io.restassured.config.EncoderConfig;
 import io.restassured.http.ContentType;
-import io.restassured.parsing.Parser;
 
 import java.util.Map;
+import java.util.TreeMap;
 
 import net.serenitybdd.rest.SerenityRest;
+import org.apache.tomcat.util.json.ParseException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.http.HttpHeaders;
@@ -31,156 +30,86 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+
 
 @Slf4j
 @ExtendWith(PactConsumerTestExt.class)
 @ExtendWith(SpringExtension.class)
 public class IdamConsumerTest {
 
-    private static final String IDAM_DETAILS_URL = "/details";
-    private static final String IDAM_OAUTH2_AUTHORIZE_URL = "/o/token";
-    private static final String IDAM_OAUTH2_TOKEN_URL = "/o/token";
-
-    private static final String CLIENT_REDIRECT_URI = "/oauth2redirect";
+    private static final String IDAM_OPEN_ID_TOKEN_URL = "/o/token";
     private static final String IDAM_GET_USER_URL = "/api/v1/users";
-    private static final String ACCESS_TOKEN =
-            "eyJ0eXAiOiJKV1QiLCJ6aXAiOiJOT05FIiwia2lkIjoiRm8rQXAybThDT3ROb290ZjF4TWg0bGc3MFlBPSIsImFsZyI6IlJTMjU2In0."
-                    + "eyJzdWIiOiJmcmVnLXRlc3QtdXNlci1ZOHlqVURSeWpyQGZlZW1haWwuY29tIiwiYXV0aF9sZXZlbCI6MCwiYXVkaXRUcm"
-                    + "Fja2luZ0lkIjoiYTU2MDliYjYtYzEzYi00MjQ0LTg3ODItNDNmZGViMDZlMDBjIiwiaXNzIjoiaHR0cHM6Ly9mb3JnZXJvY"
-                    + "2stYW0uc2VydmljZS5jb3JlLWNvbXB1dGUtaWRhbS1hYXQuaW50ZXJuYWw6ODQ0My9vcGVuYW0vb2F1dGgyL2htY3RzIiwi"
-                    + "dG9rZW5OYW1lIjoiYWNjZXNzX3Rva2VuIiwidG9rZW5fdHlwZSI6IkJlYXJlciIsImF1dGhHcmFudElkIjoiYWNjNmUyYTA"
-                    + "tMWExYi00OGM3LWJmZGItNzI1NjllM2E1NjkzIiwiYXVkIjoicmQtcHJvZmVzc2lvbmFsLWFwaSIsIm5iZiI6MTU2OTQ0MT"
-                    + "kxMSwiZ3JhbnRfdHlwZSI6ImF1dGhvcml6YXRpb25fY29kZSIsInNjb3BlIjpbIm9wZW5pZCIsInByb2ZpbGUiLCJyb2xlc"
-                    + "yIsImNyZWF0ZS11c2VyIiwibWFuYWdlLXVzZXIiXSwiYXV0aF90aW1lIjoxNTY5NDQxOTExMDAwLCJyZWFsbSI6Ii9obWN0"
-                    + "cyIsImV4cCI6MTU2OTQ1NjMxMSwiaWF0IjoxNTY5NDQxOTExLCJleHBpcmVzX2luIjoxNDQwMCwianRpIjoiY2Q5MWM0NjQ"
-                    + "tMzU0Zi00N2I2LTkwYTUtNWY2Y2U3NGUwYTY5In0.aLobAYYCxkmryzKV1stmag63h-ndxrDjO4462YERcLDIXVmvFJNXfd"
-                    + "PRg9U8WGv0GkOrSkHVJ7tbdLQySnOVYulXkPl71g5MqU7ZuEQvHaBpfW9exBCfP-pw8kWyMUck-rB00tkEX7ZpS6euQM0WV"
-                    + "bdczPnClxR3tWwktPfN-bCo6PPwqiMkC1DgTmjQBMtjgP1nEiJM7Kocqb2X3OCItf4lps1_nSG68jI98fwaLn8WQgk1sw9e"
-                    + "ebskChXDfpmIyreeGFWpHNpdFqOFfYEC5FnSgXHQw7Eu-hc5RofPZzKFrbwZHC31t5guK9Wq8zn9Xwe6743g4ozm3EHN8fs"
-                    + "jVQ";
+    private static final String ACCESS_TOKEN = "Bearer eyJ0eXAiOiJKV1QiLCJ6aXAiOiJOT05FIiwia2lkIjoiMWVyMFdSd2dJT1RBRm9"
+            + "qRTRyQy9mYmVLdTNJPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJhZG1pbi5yZWZkYXRhQGhtY3RzLm5ldCIsImN0cyI6Ik9BVVRIMl9"
+            + "TVEFURUxFU1NfR1JBTlQiLCJhdXRoX2xldmVsIjowLCJhdWRpdFRyYWNraW5nSWQiOiJhYjhlM2VlNi02ZjE1LTQ1MjItOTQzNC0yYzY"
+            + "0ZGJmZDcwYzAtMTEwMDY3NzUiLCJpc3MiOiJodHRwczovL2Zvcmdlcm9jay1hbS5zZXJ2aWNlLmNvcmUtY29tcHV0ZS1pZGFtLWFhdDI"
+            + "uaW50ZXJuYWw6ODQ0My9vcGVuYW0vb2F1dGgyL2htY3RzIiwidG9rZW5OYW1lIjoiYWNjZXNzX3Rva2VuIiwidG9rZW5fdHlwZSI6IkJ"
+            + "lYXJlciIsImF1dGhHcmFudElkIjoiSkVXSW1DejlZSHUybk9SNmF1SHJnWWdNS2dzIiwiYXVkIjoicmQtcHJvZmVzc2lvbmFsLWFwaSI"
+            + "sIm5iZiI6MTU5MjkwMzI4NCwiZ3JhbnRfdHlwZSI6InBhc3N3b3JkIiwic2NvcGUiOlsib3BlbmlkIiwicHJvZmlsZSIsInJvbGVzIiw"
+            + "iY3JlYXRlLXVzZXIiLCJtYW5hZ2UtdXNlciIsInNlYXJjaC11c2VyIl0sImF1dGhfdGltZSI6MTU5MjkwMzI4NCwicmVhbG0iOiIvaG1"
+            + "jdHMiLCJleHAiOjE1OTI5MzIwODQsImlhdCI6MTU5MjkwMzI4NCwiZXhwaXJlc19pbiI6Mjg4MDAsImp0aSI6Ii1vQmU1bWhSaGRzX2d"
+            + "qemZFWXlmRzgyNzNDTSJ9.VUAKkB2sPaZAYUEKOhkN5JWtCXKAjHB5Y016eRqGzCXaKWqdm2T6FLTz-51YGfGPh4OW0wGdzCNUW7FUZx"
+            + "OUVnRgkNtI-74f7l_zlLOSO1xGa1xhP0PJ1OZNrCB2jEwO31b6bwLhD_JPaIEIaWu727pU9v1DTrjpBcUSCN1vGeZN0o9iVuPLcMVUYi"
+            + "24YcsjDFhNp9j6S3elqCvZcH8pwhXXUZ2lvCsV9k86gEC-9rwX49Zi2xw_e_xxSHz6KMkjM8_-lPu3RyayiELfQwhjXeGDJJm4adquoh"
+            + "WJkL0YXBdgiHmHDGfuaoUVfDQ5R-g4eOtYkAUo8cOePO_PScURig";
     private static final String FORE_NAME = "forename";
     private static final String SUR_NAME = "surname";
     private static final String ROLES = "roles";
 
-    @BeforeEach
-    public void setUp() {
-        RestAssured.defaultParser = Parser.JSON;
-        RestAssured.config().encoderConfig(new EncoderConfig("UTF-8", "UTF-8"));
-    }
 
-    @Test
     @Pact(provider = "Idam_api", consumer = "rd_profile_sync__idam_api")
-    public RequestResponsePact executeGetIdamAuthCodeAndGet200Response(PactDslWithProvider builder) {
+    public RequestResponsePact executeGetIdamAccessTokenAndGet200(PactDslWithProvider builder) throws JSONException {
+        String[] rolesArray = new String[1];
+        rolesArray[0] = "prd-admin";
 
-        Map<String, String> headers = Maps.newHashMap();
-        headers.put(HttpHeaders.AUTHORIZATION, ACCESS_TOKEN);
-        headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        Map<String, String> responseHeaders = Maps.newHashMap();
+        responseHeaders.put("Content-Type", "application/json");
+
+        Map<String, Object> params = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        params.put("email", "prdadmin@email.net");
+        params.put("password", "Password123");
+        params.put("forename","profilesyncAdmin");
+        params.put("surname", "jar123");
+        params.put("roles", rolesArray);
 
         return builder
-                .given("Idam returns the auth code ")
-                .uponReceiving("Provider receives a POST /oauth2/authorize from an RD - PROFILE SYNC API")
-                .path(IDAM_OAUTH2_AUTHORIZE_URL)
+                .given("a user exists", params)
+                .uponReceiving("Provider takes user/pwd and returns Access Token to RD "
+                        + "- PROFILE SYNC API")
+                .path(IDAM_OPEN_ID_TOKEN_URL)
                 .method(HttpMethod.POST.toString())
-                .headers(headers)
+                .body("redirect_uri=http%3A%2F%2Fwww.dummy-pact-service.com%2Fcallback&client_id=pact&grant_type="
+                        + "password&username=prdadmin%40email.net&password=Password123&client_secret=pactsecret&scope="
+                        + "openid profile roles manage-user create-user search-user",
+                        "application/x-www-form-urlencoded")
                 .willRespondWith()
                 .status(HttpStatus.OK.value())
-                .body(new PactDslJsonBody()
-                        .stringType("code", "12345"))
+                .headers(responseHeaders)
+                .body(createAuthResponse())
                 .toPact();
-
     }
 
     @Test
-    @PactTestFor(pactMethod = "executeGetIdamAuthCodeAndGet200Response")
-    public void should_post_to_oauth2_authorize_and_receive_code_with_200_response(MockServer mockServer)
+    @PactTestFor(pactMethod = "executeGetIdamAccessTokenAndGet200")
+    public void should_post_to_token_endpoint_and_receive_access_token_with_200_response(MockServer mockServer)
             throws JSONException {
-
-        Map<String, String> headers = Maps.newHashMap();
-        headers.put(HttpHeaders.AUTHORIZATION, ACCESS_TOKEN);
-
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("response_type", "code");
-        body.add("client_id", "ia");
-        body.add("redirect_uri", CLIENT_REDIRECT_URI);
 
         String actualResponseBody =
                 SerenityRest
                         .given()
-                        .headers(headers)
                         .contentType(ContentType.URLENC)
-                        .formParams(body)
-                        .when()
-                        .post(mockServer.getUrl() + IDAM_OAUTH2_AUTHORIZE_URL)
+                        .formParam("redirect_uri",
+                                "http://www.dummy-pact-service.com/callback")
+                        .formParam("client_id", "pact")
+                        .formParam("grant_type", "password")
+                        .formParam("username", "prdadmin@email.net")
+                        .formParam("password", "Password123")
+                        .formParam("client_secret", "pactsecret")
+                        .formParam("scope",
+                                "openid profile roles manage-user create-user search-user")
+                        .post(mockServer.getUrl() + IDAM_OPEN_ID_TOKEN_URL)
                         .then()
-                        .statusCode(200)
-                        .and()
-                        .extract()
-                        .asString();
-
-        assertThat(actualResponseBody).isNotNull();
-
-        JSONObject response = new JSONObject(actualResponseBody);
-        assertThat(response.get("code").toString()).isNotBlank();
-    }
-
-    @Test
-    @Pact(provider = "Idam_api", consumer = "rd_profile_sync__idam_api")
-    public RequestResponsePact executeGetIdamAuthTokenAndGet200(PactDslWithProvider builder) {
-
-        Map<String, String> headers = Maps.newHashMap();
-        headers.put(HttpHeaders.AUTHORIZATION, ACCESS_TOKEN);
-        headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
-
-        return builder
-                .given("Idam successfully returns tokens")
-                .uponReceiving("Provider receives a POST /o/token request from an RD - PROFILE SYNC API")
-                .path(IDAM_OAUTH2_TOKEN_URL)
-                .headers(headers)
-                .method(HttpMethod.POST.toString())
-                .willRespondWith()
-                .status(HttpStatus.OK.value())
-                .body(new PactDslJsonBody()
-                        .stringType("access_token", "some-long-access-token")
-                        .stringType("token_type", "Bearer")
-                        .stringType("expires_in", "28800"))
-                .toPact();
-
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "executeGetIdamAuthTokenAndGet200")
-    public void should_post_to_oauth2_token_and_receive_code_with_200_response(MockServer mockServer)
-
-            throws JSONException {
-
-        Map<String, String> headers = Maps.newHashMap();
-
-        headers.put(HttpHeaders.AUTHORIZATION, ACCESS_TOKEN);
-
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("code", "some-code");
-        body.add("grant_type", "authorization_code");
-        body.add("redirect_uri", CLIENT_REDIRECT_URI);
-        body.add("client_id", "ia");
-        body.add("client_secret", "some-client-secret");
-
-        String actualResponseBody =
-
-                SerenityRest
-                        .given()
-                        .headers(headers)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-                        .formParams(body)
-                        .log().all(true)
-                        .when()
-                        .post(mockServer.getUrl() + IDAM_OAUTH2_TOKEN_URL)
-                        .then()
-                        .statusCode(200)
-                        .and()
-                        .extract().response().body()
-                        .asString();
+                        .log().all().extract().asString();
 
         JSONObject response = new JSONObject(actualResponseBody);
 
@@ -193,128 +122,110 @@ public class IdamConsumerTest {
 
     @Test
     @Pact(provider = "Idam_api", consumer = "rd_profile_sync__idam_api")
-    public RequestResponsePact executeGetUserDetailsAndGet200(PactDslWithProvider builder) {
-
-        Map<String, String> headers = Maps.newHashMap();
-        headers.put(HttpHeaders.AUTHORIZATION, ACCESS_TOKEN);
-
-        return builder
-                .given("Idam successfully returns user details")
-                .uponReceiving("Provider receives a GET /details request from an RD - PROFILE SYNC API")
-                .path(IDAM_DETAILS_URL)
-                .method(HttpMethod.GET.toString())
-                .headers(headers)
-                .willRespondWith()
-                .status(HttpStatus.OK.value())
-                .body(createUserDetailsResponse())
-                .toPact();
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "executeGetUserDetailsAndGet200")
-    public void should_get_user_details_with_access_token(MockServer mockServer) throws JSONException {
-
-        Map<String, String> headers = Maps.newHashMap();
-        headers.put(HttpHeaders.AUTHORIZATION, ACCESS_TOKEN);
-
-        String actualResponseBody =
-                SerenityRest
-                        .given()
-                        .headers(headers)
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .when()
-                        .get(mockServer.getUrl() + IDAM_DETAILS_URL)
-                        .then()
-                        .statusCode(200)
-                        .and()
-                        .extract()
-                        .body()
-                        .asString();
-
-        JSONObject response = new JSONObject(actualResponseBody);
-
-        assertThat(actualResponseBody).isNotNull();
-        assertThat(response).hasNoNullFieldsOrProperties();
-        assertThat(response.getString("id")).isNotBlank();
-        assertThat(response.getString(FORE_NAME)).isNotBlank();
-        assertThat(response.getString(SUR_NAME)).isNotBlank();
-
-        JSONArray rolesArr = new JSONArray(response.getString(ROLES));
-
-        assertThat(rolesArr).isNotNull();
-        assertThat(rolesArr.length()).isNotZero();
-        assertThat(rolesArr.get(0).toString()).isNotBlank();
-
-    }
-
-    @Test
-    @Pact(provider = "Idam_api", consumer = "rd_profile_sync__idam_api")
     public RequestResponsePact executeGetUserAndGet200(PactDslWithProvider builder) {
 
         Map<String, String> headers = Maps.newHashMap();
         headers.put(HttpHeaders.AUTHORIZATION, ACCESS_TOKEN);
+        headers.put("Content-Type", "application/json");
+
+        Map<String, String> responseHeaders = Maps.newHashMap();
+        responseHeaders.put("Content-Type", "application/json");
+
+        Map<String, Object> formParam = new TreeMap<>();
+        formParam.put("redirect_uri", "http://www.dummy-pact-service.com/callback");
+        formParam.put("client_id", "pact");
+        formParam.put("grant_type", "password");
+        formParam.put("username", "prdadmin@email.net");
+        formParam.put("password", "Password123");
+        formParam.put("client_secret", "pactsecret");
+        formParam.put("scope", "openid profile roles manage-user create-user search-user");
 
         return builder
-                .given("Idam successfully returns user")
-                .uponReceiving("Provider receives a GET /api/v1/users request from an RD - PROFILE SYNC API")
+                .given("I have obtained an access_token as a user", formParam)
+                .uponReceiving("Provider receives a GET /api/v1/users request from an RD "
+                        + "- PROFILE SYNC API")
+                .query("query=(roles:pui-case-manager OR roles:pui-user-manager OR roles:pui-organisation-manager OR"
+                        + " roles:pui-finance-manager) AND lastModified:>now-1h")
                 .path(IDAM_GET_USER_URL)
                 .method(HttpMethod.GET.toString())
                 .headers(headers)
                 .willRespondWith()
                 .status(HttpStatus.OK.value())
+                .headers(responseHeaders)
                 .body(createUserDetailsResponse())
                 .toPact();
     }
 
     @Test
     @PactTestFor(pactMethod = "executeGetUserAndGet200")
-    public void should_get_user_from_elastic_search(MockServer mockServer) throws JSONException {
-
+    public void should_get_user_from_elastic_search(MockServer mockServer) throws JSONException, ParseException {
+        //passing hardcoded token which is valid for 8 hours.
+        // So every time when you run the test case generate new token and paste in the code.
         Map<String, String> headers = Maps.newHashMap();
         headers.put(HttpHeaders.AUTHORIZATION, ACCESS_TOKEN);
+        headers.put("Content-Type", "application/json");
+
+        Map<String, String> responseHeaders = Maps.newHashMap();
+        responseHeaders.put("Content-Type", "application/json");
 
         String actualResponseBody =
                 SerenityRest
                         .given()
-                        .headers(headers)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .queryParam("query",
+                                "(roles:pui-case-manager OR roles:pui-user-manager OR "
+                                        + "roles:pui-organisation-manager OR roles:pui-finance-manager) AND "
+                                        + "lastModified:>now-1h")
                         .when()
-                        .get(mockServer.getUrl() + IDAM_GET_USER_URL)
+                        .headers(headers)
+                       .get(mockServer.getUrl() + IDAM_GET_USER_URL)
                         .then()
                         .statusCode(200)
+                        .headers(responseHeaders)
                         .and()
                         .extract()
                         .body()
                         .asString();
 
-        JSONObject response = new JSONObject(actualResponseBody);
+        JSONArray response = new JSONArray(actualResponseBody);
 
-        assertThat(actualResponseBody).isNotNull();
-        assertThat(response).hasNoNullFieldsOrProperties();
-        assertThat(response.getString("id")).isNotBlank();
-        assertThat(response.getString(FORE_NAME)).isNotBlank();
-        assertThat(response.getString(SUR_NAME)).isNotBlank();
-
-        JSONArray rolesArr = new JSONArray(response.getString(ROLES));
-
+        JSONObject jsonobject = response.getJSONObject(0);
+        assertThat(jsonobject.getString("id")).isNotBlank();
+        assertThat(jsonobject.getString(FORE_NAME)).isNotBlank();
+        assertThat(jsonobject.getString(SUR_NAME)).isNotBlank();
+        JSONArray rolesArr = new JSONArray(jsonobject.getString(ROLES));
         assertThat(rolesArr).isNotNull();
         assertThat(rolesArr.length()).isNotZero();
         assertThat(rolesArr.get(0).toString()).isNotBlank();
 
     }
 
-    private PactDslJsonBody createUserDetailsResponse() {
+
+    private DslPart createUserDetailsResponse() {
         boolean status = true;
         PactDslJsonArray array = new PactDslJsonArray()
                 .string("pui-organisation-manager")
                 .string("pui-case-manager");
-
-        return new PactDslJsonBody()
+        return PactDslJsonArray.arrayEachLike(1)
                 .stringType("id", "a833c2e2-2c73-4900-96ca-74b1efb37928")
                 .stringType(FORE_NAME, "Jack")
                 .stringType(SUR_NAME, "Skellington")
                 .stringType("email", "jackS@spookmail.com")
                 .booleanType("active", true)
-                .object(ROLES, array);
+                .stringType(ROLES, array.toString())
+                .stringType("lastModified", "2020-06-22T10:52:57.812Z")
+                .closeObject();
     }
+
+    private PactDslJsonBody createAuthResponse() {
+
+        return new PactDslJsonBody()
+                .stringType("access_token", "eyJ0eXAiOiJKV1QiLCJ6aXAiOiJOT05FI")
+                .stringType("refresh_token", "eyJ0eXAiOiJKV1QiLCJ6aXAiOiJOT05FIiwia2lkIjoiYi9PNk92V")
+                .stringType("scope", "openid profile roles manage-user create-user search-user")
+                .stringType("id_token", "eyJ0eXAiOiJKV1QiLCJraWQiOiJiL082T3ZWdjEre")
+                .stringType("token_type", "Bearer")
+                .stringType("expires_in","28798");
+    }
+
 }
