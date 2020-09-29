@@ -167,14 +167,11 @@
         <cpe>cpe:/a:opera:opera</cpe>
     </suppress>
     <suppress>
-        <notes><![CDATA[
-   file name: gradle-pitest-plugin-1.4.0.jar
-   ]]></notes>
-        <sha1>29a4ed185eeca1d90b0f4160911029ec692e746f</sha1>
-        <cpe>cpe:/a:gradle:gradle</cpe>
-        <cve>CVE-2019-11065</cve>
-        <cve>CVE-2019-15052</cve>
-        <cve>CVE-2019-16370</cve>
+    <notes><![CDATA[
+    file name: gradle-pitest-plugin*.jar: readline.jar
+    ]]></notes>
+    <filePath regex="true">.*\**\.jar</filePath>
+    <cpe>cpe:/a:gradle:gradle</cpe>
     </suppress>
     <suppress>
         <notes><![CDATA[
@@ -551,30 +548,7 @@
    file name: postgresql-42.2.9.jar
    ]]></notes>
         <packageUrl regex="true">^pkg:maven/org\.postgresql/postgresql@.*$</packageUrl>
-        <cpe>cpe:/a:postgresql:postgresql</cpe>
-        <cpe>cpe:/a:postgresql:postgresql_jdbc_driver</cpe>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-   file name: postgresql-42.2.9.jar
-   ]]></notes>
-        <packageUrl regex="true">^pkg:maven/org\.postgresql/postgresql@.*$</packageUrl>
         <cve>CVE-2020-13692</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-   file name: tomcat-embed-core-9.0.30.jar
-   ]]></notes>
-        <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat\-embed\-core@.*$</packageUrl>
-        <vulnerabilityName>CVE-2020-1745</vulnerabilityName>
-        <vulnerabilityName>CVE-2020-9484</vulnerabilityName>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-   file name: dom4j-2.1.1.jar
-   ]]></notes>
-        <packageUrl regex="true">^pkg:maven/org\.dom4j/dom4j@.*$</packageUrl>
-        <vulnerabilityName>CVE-2020-10683</vulnerabilityName>
     </suppress>
     <suppress>
         <notes><![CDATA[
@@ -582,6 +556,35 @@
    ]]></notes>
         <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring\-security\-core@.*$</packageUrl>
         <vulnerabilityName>CVE-2020-5407</vulnerabilityName>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+    file name: spring-security-core-5.2.1.RELEASE.jar
+    ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring\-security\-core@.*$</packageUrl>
         <vulnerabilityName>CVE-2020-5408</vulnerabilityName>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+    file name: dom4j-2.1.1.jar
+    ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.dom4j/dom4j@.*$</packageUrl>
+        <vulnerabilityName>CVE-2020-10683</vulnerabilityName>
+     </suppress>
+    <suppress>
+        <notes><![CDATA[
+    file name: tomcat-embed-core-9.0.30.jar
+    ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat\-embed\-core@.*$</packageUrl>
+        <vulnerabilityName>CVE-2020-1745</vulnerabilityName>
+        <vulnerabilityName>CVE-2020-11996</vulnerabilityName>
+        <vulnerabilityName>CVE-2020-9484</vulnerabilityName>
+     </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: hibernate-core-5.4.10.Final.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.hibernate/hibernate\-core@.*$</packageUrl>
+        <cve>CVE-2019-14900</cve>
     </suppress>
 </suppressions>

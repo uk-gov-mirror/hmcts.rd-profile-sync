@@ -9,15 +9,17 @@ import com.google.gson.Gson;
 import feign.Response;
 
 import io.restassured.RestAssured;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,28 +29,32 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.profilesync.advice.UserProfileSyncException;
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
 import uk.gov.hmcts.reform.profilesync.config.TokenConfigProperties;
+import uk.gov.hmcts.reform.profilesync.domain.ProfileSyncAudit;
 import uk.gov.hmcts.reform.profilesync.service.ProfileSyncService;
 import uk.gov.hmcts.reform.profilesync.service.ProfileUpdateService;
 import uk.gov.hmcts.reform.profilesync.util.JsonFeignResponseUtil;
 
 @Service
+@NoArgsConstructor
 @AllArgsConstructor
 @Slf4j
 @SuppressWarnings("unchecked")
 public class ProfileSyncServiceImpl implements ProfileSyncService {
 
     @Autowired
-    protected final IdamClient idamClient;
+    protected IdamClient idamClient;
 
     @Autowired
-    protected final AuthTokenGenerator tokenGenerator;
+    protected AuthTokenGenerator tokenGenerator;
 
     @Autowired
-    protected final ProfileUpdateService profileUpdateService;
+    protected ProfileUpdateService profileUpdateService;
 
     @Autowired
-    private final TokenConfigProperties props;
+    private TokenConfigProperties props;
 
+    @Value("${loggingComponentName}")
+    protected String loggingComponentName;
 
     static final String BEARER = "Bearer ";
 
@@ -78,7 +84,7 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
 
         if (openIdTokenResponse.getStatusCode() > 300) {
 
-            throw new UserProfileSyncException(HttpStatus.valueOf(openIdTokenResponse.getStatusCode()),"Idam Service Failed while bearer token generate");
+            throw new UserProfileSyncException(HttpStatus.valueOf(openIdTokenResponse.getStatusCode()), "Idam Service Failed while bearer token generate");
         }
         IdamClient.BearerTokenResponse accessTokenResponse = new Gson().fromJson(openIdTokenResponse.getBody().asString(), IdamClient.BearerTokenResponse.class);
         return accessTokenResponse.getAccessToken();
@@ -89,49 +95,47 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
     }
 
 
-    public List<IdamClient.User> getSyncFeed(String bearerToken, String searchQuery)throws UserProfileSyncException {
+    public Set<IdamClient.User> getSyncFeed(String bearerToken, String searchQuery)throws UserProfileSyncException {
         Map<String, String> formParams = new HashMap<>();
         formParams.put("query", searchQuery);
 
-        List<IdamClient.User> updatedUserList = new ArrayList<>();
+        Set<IdamClient.User> updatedUsers = new HashSet<>();
         int totalCount = 0;
         int counter = 0;
-        int recordsPerPage = 20;
+        int recordsPerPage = 500;
 
         do {
             formParams.put("page", String.valueOf(counter));
             Response response = idamClient.getUserFeed(bearerToken, formParams);
-            ResponseEntity responseEntity = JsonFeignResponseUtil.toResponseEntity(response, new TypeReference<List<IdamClient.User>>() {
+            ResponseEntity<Object> responseEntity = JsonFeignResponseUtil.toResponseEntity(response, new TypeReference<Set<IdamClient.User>>() {
             });
 
             if (response.status() == 200) {
 
-                List<IdamClient.User> users = (List<IdamClient.User>) responseEntity.getBody();
-                updatedUserList.addAll(users);
+                Set<IdamClient.User> users = (Set<IdamClient.User>) responseEntity.getBody();
+                updatedUsers.addAll(users);
 
                 try {
                     totalCount = Integer.parseInt(responseEntity.getHeaders().get("X-Total-Count").get(0));
-                    log.info("Header Records count from Idam ::" + totalCount);
+                    log.info("{}:: Header Records count from Idam ::{}" + totalCount, loggingComponentName);
                 } catch (Exception ex) {
                     //There is No header.
-                    log.error("X-Total-Count header not return Idam Search Service", ex);
+                    log.error("{}:: X-Total-Count header not return Idam Search Service::{}", ex, loggingComponentName);
                 }
             } else {
-                log.error("Idam Search Service Failed :");
-                throw new UserProfileSyncException(HttpStatus.valueOf(response.status()),"Idam search query failure");
+                log.error("{}:: Idam Search Service Failed ::{}", loggingComponentName);
+                throw new UserProfileSyncException(HttpStatus.valueOf(response.status()), "Idam search query failure");
 
             }
             counter++;
 
         } while (totalCount > 0 && recordsPerPage * counter < totalCount);
-
-        return updatedUserList;
+        return updatedUsers;
     }
 
-    public void updateUserProfileFeed(String searchQuery) throws UserProfileSyncException {
-        log.info("Inside updateUserProfileFeed");
+    public ProfileSyncAudit updateUserProfileFeed(String searchQuery, ProfileSyncAudit syncAudit) throws UserProfileSyncException {
+        log.info("{}:: Inside updateUserProfileFeed ::{}", loggingComponentName);
         String bearerToken = BEARER + getBearerToken();
-        profileUpdateService.updateUserProfile(searchQuery, bearerToken, getS2sToken(), getSyncFeed(bearerToken, searchQuery));
-        log.info("After updateUserProfileFeed");
+        return profileUpdateService.updateUserProfile(searchQuery, bearerToken, getS2sToken(), getSyncFeed(bearerToken, searchQuery),syncAudit);
     }
 }

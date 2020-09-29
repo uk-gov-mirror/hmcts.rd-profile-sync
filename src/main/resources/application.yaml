@@ -74,9 +74,11 @@ idam:
 
 # Scheduler configuration
 scheduler:
-  config: ${CRON_SCHEDULE:0 0/30 * * * *}
-  hours: ${SEARCH_QUERY_FROM:1h}
+  config: ${CRON_SCHEDULE:0 0/15 * * * *}
+  hours: ${SEARCH_QUERY_FROM:2h}
 
 userprofile:
   api:
     url: ${USER_PROFILE_URL:http://rd-user-profile-api-demo.service.core-compute-demo.internal}
+
+loggingComponentName: RD_Profile_Sync

@@ -10,12 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import uk.gov.hmcts.reform.profilesync.advice.UserProfileSyncException;
-import uk.gov.hmcts.reform.profilesync.constants.Source;
-import uk.gov.hmcts.reform.profilesync.domain.SyncJobAudit;
+import uk.gov.hmcts.reform.profilesync.domain.ProfileSyncAudit;
 import uk.gov.hmcts.reform.profilesync.domain.SyncJobConfig;
-import uk.gov.hmcts.reform.profilesync.repository.SyncConfigRepository;
-import uk.gov.hmcts.reform.profilesync.repository.SyncJobRepository;
+import uk.gov.hmcts.reform.profilesync.repository.ProfileSyncAuditRepository;
+import uk.gov.hmcts.reform.profilesync.repository.ProfileSyncConfigRepository;
 import uk.gov.hmcts.reform.profilesync.service.ProfileSyncService;
 
 @Component
@@ -28,65 +28,72 @@ public class UserProfileSyncJobScheduler {
     protected ProfileSyncService profileSyncService;
 
     @Autowired
-    protected SyncJobRepository syncJobRepository;
+    protected ProfileSyncConfigRepository profileSyncConfigRepository;
 
     @Autowired
-    protected SyncConfigRepository syncConfigRepository;
+    protected ProfileSyncAuditRepository profileSyncAuditRepository;
 
     @Value("${scheduler.hours:}")
     protected String executeSearchQueryFrom;
 
     private static final String SUCCESS = "success";
 
+    @Value("${loggingComponentName}")
+    protected String loggingComponentName;
+
+
     @Scheduled(cron = "${scheduler.config}")
     public void updateIdamDataWithUserProfile() {
 
         String searchQuery = "(roles:pui-case-manager OR roles:pui-user-manager OR roles:pui-organisation-manager OR roles:pui-finance-manager) AND lastModified:>now-";
-
-
-        SyncJobConfig syncJobConfig =  syncConfigRepository.findByConfigName("firstsearchquery");
+        LocalDateTime startTime = LocalDateTime.now();
+        SyncJobConfig syncJobConfig =  profileSyncConfigRepository.findByConfigName("firstsearchquery");
 
         String configRun =  syncJobConfig.getConfigRun().trim();
-
-        log.info("Job needs to be run From Last::hours::" + configRun);
+        ProfileSyncAudit  syncAudit = new ProfileSyncAudit();
+        log.info("{}:: Job needs to be run From Last::hours::{}" + configRun, loggingComponentName);
 
         if (!executeSearchQueryFrom.equals(configRun)) {
 
             searchQuery = searchQuery + configRun;
 
-            log.info("searchQuery:: will execute from::DB job run value::" + searchQuery);
+            log.info("{}:: searchQuery:: will execute from::DB job run value::{}" + searchQuery, loggingComponentName);
 
-        } else if (null != syncJobRepository.findFirstByStatusOrderByAuditTsDesc(SUCCESS)) {
+        } else if (null != profileSyncAuditRepository.findFirstBySchedulerStatusOrderBySchedulerEndTimeDesc(SUCCESS)) {
 
-            SyncJobAudit auditjob = syncJobRepository.findFirstByStatusOrderByAuditTsDesc(SUCCESS);
-            searchQuery = searchQuery + getLastBatchFailureTimeInHours(auditjob.getAuditTs());
+            ProfileSyncAudit syncAuditDtl  = profileSyncAuditRepository.findFirstBySchedulerStatusOrderBySchedulerEndTimeDesc(SUCCESS);
+            searchQuery = searchQuery + getLastSuccessTimeInHours(syncAuditDtl.getSchedulerEndTime());
 
-            log.info(" SearchQuery::executing from last success ::" + searchQuery);
+            log.info("{}::  SearchQuery::executing from last success ::{}" + searchQuery, loggingComponentName);
         }
 
         try {
-
-            profileSyncService.updateUserProfileFeed(searchQuery);
-            SyncJobAudit syncJobAudit = new SyncJobAudit(201, SUCCESS, Source.SYNC);
-            syncJobRepository.save(syncJobAudit);
+            syncAudit = profileSyncService.updateUserProfileFeed(searchQuery, syncAudit);
+            if (StringUtils.isEmpty(syncAudit.getSchedulerStatus())) {
+                syncAudit.setSchedulerStatus(SUCCESS);
+            }
+            syncAudit.setSchedulerStartTime(startTime);
+            //updating same sync object with status and start time and if user profiles associated
+            // then it will save along with profileSyncAudit details.
+            profileSyncAuditRepository.save(syncAudit);
 
             // setting the value to run next job for from
             if (!executeSearchQueryFrom.equals(configRun)) {
                 syncJobConfig.setConfigRun(executeSearchQueryFrom);
-                syncConfigRepository.save(syncJobConfig);
+                profileSyncConfigRepository.save(syncJobConfig);
             }
-
-
+            log.info("{}::Sync batch job executed successfully::{}", loggingComponentName);
 
         } catch (UserProfileSyncException e) {
-            log.info("Sync Batch Job Failed::", e.getErrorMessage());
-            SyncJobAudit syncJobAudit = new SyncJobAudit(500, "fail", Source.SYNC);
-            syncJobRepository.save(syncJobAudit);
+            log.error("{}::Sync Batch Job Failed::{}", loggingComponentName, e.getErrorMessage());
+            syncAudit.setSchedulerStatus("fail");
+            syncAudit.setSchedulerStartTime(startTime);
+            profileSyncAuditRepository.save(syncAudit);
 
         }
     }
 
-    private String getLastBatchFailureTimeInHours(LocalDateTime lastSuccessBatch) {
+    public String getLastSuccessTimeInHours(LocalDateTime lastSuccessBatch) {
 
         long hoursDiff = 1;
         Duration duration = Duration.between(LocalDateTime.now(), lastSuccessBatch);
@@ -98,9 +105,9 @@ public class UserProfileSyncJobScheduler {
                 hoursDiff = hoursDiff + 1;
             }
 
-            log.info("Diff of Hours::" + hoursDiff);
+            log.info("{}:: Diff of Hours::{}" + hoursDiff, loggingComponentName);
         }
-        log.info("Since Last Batch success in sync job in hours:: " + hoursDiff);
+        log.info("{}::Since Last  success in sync job in hours::{}" + hoursDiff, loggingComponentName);
         return Long.toString(hoursDiff) + 'h';
     }
 

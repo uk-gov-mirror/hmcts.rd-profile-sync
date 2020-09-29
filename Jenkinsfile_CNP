@@ -29,27 +29,12 @@ def vaultOverrides = [
 
 withPipeline(type, product, component) {
 
-
     overrideVaultEnvironments(vaultOverrides)
     loadVaultSecrets(secrets)
 
     enableDbMigration('rd')
-
     disableLegacyDeployment()
-
-    disableLegacyDeployment()
-    enableAksStagingDeployment()
-
-
-    onPerftest{
-        env.S2S_URL_FOR_TESTS = "http://rpe-service-auth-provider-perftest.service.core-compute-perftest.internal"
-    }
-
-    onPR{
-        env.S2S_URL_FOR_TESTS = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
-    }
-
-
+    env.S2S_URL_FOR_TESTS = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
     enableAksStagingDeployment()
 
     after('integrationTest:preview') {
