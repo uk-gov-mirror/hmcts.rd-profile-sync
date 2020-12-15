@@ -9,16 +9,16 @@ buildscript {
 
 plugins {
 	id 'application'
-	id 'uk.gov.hmcts.java' version '0.12.0'
+	id 'uk.gov.hmcts.java' version '0.12.2'
 	id 'jacoco'
 	id 'pmd'
-	id 'com.github.ben-manes.versions' version '0.33.0'
+	id 'com.github.ben-manes.versions' version '0.36.0'
 	id "info.solidsoft.pitest" version '1.5.2'
 	id 'io.spring.dependency-management' version '1.0.10.RELEASE'
 	id 'org.sonarqube' version '3.0'
 	id 'org.springframework.boot' version '2.3.4.RELEASE'
 	id "org.flywaydb.flyway" version "7.0.1"
-	id 'au.com.dius.pact' version '4.1.7'
+	id 'au.com.dius.pact' version '4.1.12'
 }
 
 apply plugin: 'java'
@@ -340,7 +340,7 @@ dependencies {
 	}
 	compile group: 'org.flywaydb', name: 'flyway-core', version: '5.2.4'
 	compile group: 'org.postgresql', name: 'postgresql', version: '42.2.14'
-	compile group: 'com.google.guava', name: 'guava', version: '28.1-jre'
+	compile group: 'com.google.guava', name: 'guava', version: '30.1-jre'
 
 	compile group: 'javax.el', name: 'javax.el-api', version: '3.0.0'
 
@@ -363,9 +363,9 @@ dependencies {
 
 	testCompile group: 'com.h2database', name: 'h2'
 	testCompile "com.github.tomakehurst:wiremock:2.19.0"
-	testCompile group: 'org.mockito', name: 'mockito-core', version: '3.5.13'
-	testCompile group: 'org.mockito', name: 'mockito-inline', version: '3.5.13'
-	testCompile group: 'org.powermock', name: 'powermock-api-mockito2', version: '2.0.4'
+	testCompile group: 'org.mockito', name: 'mockito-core', version: '3.6.28'
+	testCompile group: 'org.mockito', name: 'mockito-inline', version: '3.6.28'
+	testCompile group: 'org.powermock', name: 'powermock-api-mockito2', version: '2.0.9'
 	testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: versions.springBoot
 
 	testCompile group: 'org.pitest', name: 'pitest', version: versions.pitest
