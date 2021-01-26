@@ -1,26 +1,16 @@
 package uk.gov.hmcts.reform.profilesync.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-
 import feign.Response;
-
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.profilesync.advice.UserProfileSyncException;
 import uk.gov.hmcts.reform.profilesync.client.IdamClient;
@@ -30,6 +20,13 @@ import uk.gov.hmcts.reform.profilesync.domain.response.OpenIdAccessTokenResponse
 import uk.gov.hmcts.reform.profilesync.service.ProfileSyncService;
 import uk.gov.hmcts.reform.profilesync.service.ProfileUpdateService;
 import uk.gov.hmcts.reform.profilesync.util.JsonFeignResponseUtil;
+
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @NoArgsConstructor
@@ -82,7 +79,12 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
     }
 
     public String getS2sToken() {
-        return tokenGenerator.generate();
+        log.info("generating S2S Token from updateUserProfileFeed method");
+        String s2sToken = tokenGenerator.generate();
+        if (StringUtils.isNotEmpty(s2sToken)) {
+            log.info("The length of S2S token is: {}", s2sToken.length());
+        }
+        return s2sToken;
     }
 
 
@@ -98,6 +100,8 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
         do {
             formParams.put("page", String.valueOf(counter));
             Response response = idamClient.getUserFeed(bearerToken, formParams);
+            logIdamResponse(response);
+
             ResponseEntity<Object> responseEntity = JsonFeignResponseUtil.toResponseEntity(response,
                     new TypeReference<Set<IdamClient.User>>() {
                 });
@@ -129,6 +133,16 @@ public class ProfileSyncServiceImpl implements ProfileSyncService {
 
         } while (totalCount > 0 && recordsPerPage * counter < totalCount);
         return updatedUsers;
+    }
+
+    private void logIdamResponse(Response response) {
+        log.info("Logging Response from IDAM");
+        if (response != null) {
+            log.info("Response code from idamClient.getUserFeed {}", response.status());
+            if (response.status() != 200 && response.body() != null) {
+                log.info("Response body from idamClient.getUserFeed {}", response.body().toString());
+            }
+        }
     }
 
     public ProfileSyncAudit updateUserProfileFeed(String searchQuery, ProfileSyncAudit syncAudit)
